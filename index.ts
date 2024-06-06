@@ -151,9 +151,7 @@ type PossiblePartsFlagCombinations =
   `${ShouldAddLeftExclusivePart}${ShouldAddInnerPart}${ShouldAddRightExclusivePart}`
 ;
 
-type Magic1<
-  Flags extends PossiblePartsFlagCombinations,
-> =
+type Magic1<Flags extends PossiblePartsFlagCombinations> =
   [Flags] extends ['000'] ? 'NN' :
   [Flags] extends ['001'] ? 'NR' : // right join excluding inner
   [Flags] extends ['010'] ? 'LR' : // inner join
@@ -165,9 +163,7 @@ type Magic1<
   never
 ;
 
-type Magic2<
-  Flags extends PossiblePartsFlagCombinations,
-> =
+type Magic2<Flags extends PossiblePartsFlagCombinations> =
   {
     '000': 'NN';
     '001': 'NR';
@@ -334,16 +330,17 @@ function getAllCombinations<L, R>(
 
 
 
+type Joiner<L, R, Flags extends PossiblePartsFlagCombinations> =
+  Merge<SelectUnion2<L, R, `${Magic1<Flags>}E`>>
+;
 
-
-type LeftExclusiveJoin <L, R> = Magic1<'100'>; // +
-type InnerJoin         <L, R> = Magic1<'010'>; // +
-type RightExclusiveJoin<L, R> = Magic1<'001'>; // +
-
-type LeftJoin          <L, R> = Magic1<'110'>; // +
-type RightJoin         <L, R> = Magic1<'011'>; // +
-type FullJoin          <L, R> = Magic1<'111'>; // +
-type FullExclusiveJoin <L, R> = Magic1<'101'>; // +
+type LeftExclusiveJoin <L, R> = Joiner<L, R, '100'>;
+type InnerJoin         <L, R> = Joiner<L, R, '010'>;
+type RightExclusiveJoin<L, R> = Joiner<L, R, '001'>;
+type LeftJoin          <L, R> = Joiner<L, R, '110'>;
+type RightJoin         <L, R> = Joiner<L, R, '011'>;
+type FullJoin          <L, R> = Joiner<L, R, '111'>;
+type FullExclusiveJoin <L, R> = Joiner<L, R, '101'>;
 
 type LeftOuterJoin<L, R> = LeftJoin<L, R>;
 type RightOuterJoin<L, R> = RightJoin<L, R>;
