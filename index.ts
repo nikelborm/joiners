@@ -1,24 +1,29 @@
 const _ = Symbol('emptiness');
+type _ = typeof _;
+
 export type Merge<T> = { [P in keyof T]: T[P] } & {};
 
 const left = new Set([1, 2, 3, 4]);
 const right = new Set([3, 4, 5, 6]);
 
 
-type Possible3rdLetter = 'A' | 'C' | 'E';
 // 3rd letter
-// A - Atom. The most basic element. the most LR-pair-union of only one element
-// C - Compacted. The most high order representation of the combination of atoms.
+type Possible3rdLetter = 'A' | 'C' | 'E';
+// A - Atomic. Union of narrowest LR tuple types. Narrowest means that
+// elements of the LR tuple are not unions ans either _ or value (L or R,
+// depending on the position)
+// C - Compacted. The most high order representation of the combination
+// of atoms.
 // E - Expanded. All possible representations of
 
-type Possible1stLetter = 'N' | 'L' | 'B';
 // 1st letter:
+type Possible1stLetter = 'N' | 'L' | 'B';
 // N - No element(empty/_). 1st element of the tuple is _
 // L - Left element(L)    . 1st element of the tuple is L
 // B - Both               . 1st element of the tuple is (_ | L)
 
-type Possible2ndLetter = 'N' | 'R' | 'B';
 // 2nd letter:
+type Possible2ndLetter = 'N' | 'R' | 'B';
 // N - No element(empty/_). 2nd element of the tuple is _
 // R - Right element(R)   . 2nd element of the tuple is R
 // B - Both               . 2nd element of the tuple is (_ | R)
@@ -71,23 +76,31 @@ type BBE<L, R> = BBA<L, R> | BBC<L, R>
 
 
 
+type FilterOne<
+  Tuple extends [any, any],
+  Pos extends 0 | 1
+> = [Tuple[Pos]] extends [never] ? never : Tuple;
 
-
-type Filter<Tuple extends [any, any], By extends '--' | 'l-' | '-r' | 'lr'> =
+type Filter<
+  Tuple extends [any, any],
+  By extends '--' | 'l-' | '-r' | 'lr'
+> =
   [By] extends '--' ? Tuple :
-  [By] extends 'l-' ? ([Tuple[0]] extends [never] ? never : Tuple) :
-  [By] extends '-r' ? ([Tuple[1]] extends [never] ? never : Tuple) :
-  [By] extends 'lr' ? ([Tuple[0]] extends [never] ? never : ([Tuple[1]] extends [never] ? never : Tuple)) :
+  [By] extends 'l-' ? FilterOne<Tuple, 0> :
+  [By] extends '-r' ? FilterOne<Tuple, 0> :
+  [By] extends 'lr' ? FilterOne<FilterOne<Tuple, 0>, 1> :
   never
 ;
 
+type to_<V> = Extract<V, _>;
+type toV<V> = Exclude<V, _>;
 // ATOMS
-type toNNA<L, R> = Filter<[Extract<L, _>, Extract<R, _>], 'lr'>; // [_, _];
-type toLNA<L, R> = Filter<[Exclude<L, _>, Extract<R, _>], 'lr'>; // [L, _];
-type toNRA<L, R> = Filter<[Extract<L, _>, Exclude<R, _>], 'lr'>; // [_, R];
-type toLRA<L, R> = Filter<[Exclude<L, _>, Exclude<R, _>], 'lr'>; // [L, R];
+type toNNA<L, R> = Filter<[to_<L>, to_<R>], 'lr'>; // [_, _];
+type toLNA<L, R> = Filter<[toV<L>, to_<R>], 'lr'>; // [L, _];
+type toNRA<L, R> = Filter<[to_<L>, toV<R>], 'lr'>; // [_, R];
+type toLRA<L, R> = Filter<[toV<L>, toV<R>], 'lr'>; // [L, R];
 
-// To better understand atoms with letter B in code, see according compacted
+// To better understand atoms with letter B in code, see according compact
 type toNBA<L, R> = toNRA<L, R> | toNNA<L, R>;
 type toLBA<L, R> = toLNA<L, R> | toLRA<L, R>;
 type toBRA<L, R> = toNRA<L, R> | toLRA<L, R>;
@@ -100,11 +113,11 @@ type toLNC<L, R> = toLNA<L, R>;
 type toNRC<L, R> = toNRA<L, R>;
 type toLRC<L, R> = toLRA<L, R>;
 
-type toNBC<L, R> = Filter<[Extract<L, _>, R            ], 'l-'>; // [_    , R | _];
-type toLBC<L, R> = Filter<[Exclude<L, _>, R            ], 'l-'>; // [L    , R | _];
-type toBRC<L, R> = Filter<[L            , Exclude<R, _>], '-r'>; // [L | _, R    ];
-type toBNC<L, R> = Filter<[L            , Extract<R, _>], '-r'>; // [L | _, _    ];
-type toBBC<L, R> = Filter<[L            , R            ], '--'>; // [L | _, R | _];
+type toNBC<L, R> = Filter<[to_<L>, R     ], 'l-'>; // [_    , R | _];
+type toLBC<L, R> = Filter<[toV<L>, R     ], 'l-'>; // [L    , R | _];
+type toBRC<L, R> = Filter<[L     , toV<R>], '-r'>; // [L | _, R    ];
+type toBNC<L, R> = Filter<[L     , to_<R>], '-r'>; // [L | _, _    ];
+type toBBC<L, R> = Filter<[L     , R     ], '--'>; // [L | _, R | _];
 
 // EXPANDED
 type toNNE<L, R> = toNNA<L, R>;
@@ -170,6 +183,7 @@ type Magic2<
 // TODO: attempt to integrate 'exists' joins here?
 
 type UsedFlags = Magic2<PossiblePartsFlagCombinations>
+type UnusedFlags = Exclude<PossibleFirstTwoLettersCombinations, UsedFlags>;
 
 
 type PossibleAllLettersCombinations =
@@ -318,7 +332,7 @@ function getAllCombinations<L, R>(
 
 
 
-type _ = typeof _;
+
 
 
 
