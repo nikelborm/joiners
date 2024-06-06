@@ -49,10 +49,10 @@ type LNC<L, R> = LNA<L, R>;
 type NRC<L, R> = NRA<L, R>;
 type LRC<L, R> = LRA<L, R>;
 
-type NBC<L, R> = [_    , R | _];
+type NBC<L, R> = [    _, R | _];
 type LBC<L, R> = [L    , R | _];
 type BRC<L, R> = [L | _, R    ];
-type BNC<L, R> = [L | _, _    ];
+type BNC<L, R> = [L | _,     _];
 type BBC<L, R> = [L | _, R | _];
 
 // EXPANDED
@@ -92,8 +92,8 @@ type Filter<
   never
 ;
 
-type to_<V> = Extract<V, _>;
-type toV<V> = Exclude<V, _>;
+type to_<T> = Extract<T, _>;
+type toV<T> = Exclude<T, _>;
 // ATOMS
 type toNNA<L, R> = Filter<[to_<L>, to_<R>], 'lr'>; // [_, _];
 type toLNA<L, R> = Filter<[toV<L>, to_<R>], 'lr'>; // [L, _];
@@ -260,27 +260,29 @@ type SelectUnion2<
 
 
 
-
-
 // comparator = (l, r) => l === r;
 
-function isEmpty<T>(v: T): v is Extract<T, _> {
+function isEmpty<T>(v: T): v is to_<T> {
   return v === _;
 }
 
-function isNotEmpty<T>(v: T): v is Exclude<T, _> {
+function isNotEmpty<T>(v: T): v is toV<T> {
   return v !== _;
 }
 
-const nn = [_, _  ] as Merge<NNA<number, string>>;
-const nr = [_, 's'] as Merge<NRA<number, string>>;
-const nb = [_, 'a'] as Merge<NBA<number, string>>;
-const ln = [1, _  ] as Merge<LNA<number, string>>;
-const lr = [1, 's'] as Merge<LRA<number, string>>;
-const lb = [1, '1'] as Merge<LBA<number, string>>;
-const bn = [1, _  ] as Merge<BNA<number, string>>;
-const br = [_, '1'] as Merge<BRA<number, string>>;
-const bb = [1, '1'] as Merge<BBA<number, string>>;
+type helper<LettersUnion extends PossibleAllLettersCombinations> =
+  Merge<SelectUnion2<number, string, LettersUnion>>
+;
+
+const nn = [_, _  ] as helper<'NNA'>;
+const nr = [_, 's'] as helper<'NRA'>;
+const nb = [_, 'a'] as helper<'NBA'>;
+const ln = [1, _  ] as helper<'LNA'>;
+const lr = [1, 's'] as helper<'LRA'>;
+const lb = [1, '1'] as helper<'LBA'>;
+const bn = [1, _  ] as helper<'BNA'>;
+const br = [_, '1'] as helper<'BRA'>;
+const bb = [1, '1'] as helper<'BBA'>;
 
 
 let test = nb[0]
@@ -306,7 +308,7 @@ function getAllCombinations<L, R>(
   right: Set<R>,
   isL: (l: unknown) => l is L,
   isR: (r: unknown) => r is R
-): Set<BBA<L, R>> {
+) {
   const extendedLeft  = new Set<L | _>(left);
   extendedLeft.add(_);
 
