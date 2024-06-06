@@ -87,7 +87,7 @@ type Filter<
 > =
   [By] extends '--' ? Tuple :
   [By] extends 'l-' ? FilterOne<Tuple, 0> :
-  [By] extends '-r' ? FilterOne<Tuple, 0> :
+  [By] extends '-r' ? FilterOne<Tuple, 1> :
   [By] extends 'lr' ? FilterOne<FilterOne<Tuple, 0>, 1> :
   never
 ;
@@ -348,7 +348,8 @@ type LeftOuterJoin<L, R> = LeftJoin<L, R>;
 type RightOuterJoin<L, R> = RightJoin<L, R>;
 type FullOuterJoin<L, R> = FullJoin<L, R>;
 
-
+let asd: FullOuterJoin<number, string>;
+asd = [123, _]
 
 function join<L, R>(
   left: Set<L>,
