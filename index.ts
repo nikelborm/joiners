@@ -1,5 +1,5 @@
-const emptiness = Symbol('emptyElement');
-
+const _ = Symbol('emptiness');
+export type Merge<T> = { [P in keyof T]: T[P] } & {};
 
 const left = new Set([1, 2, 3, 4]);
 const right = new Set([3, 4, 5, 6]);
@@ -24,20 +24,12 @@ type Possible2ndLetter = 'N' | 'R' | 'B';
 // B - Both               . 2nd element of the tuple is (_ | R)
 
 
-type Filter<Tuple extends [any, any], By extends '--' | 'l-' | '-r' | 'lr'> =
-  [By] extends '--' ? Tuple :
-  [By] extends 'l-' ? ([Tuple[0]] extends [never] ? never : Tuple) :
-  [By] extends '-r' ? ([Tuple[1]] extends [never] ? never : Tuple) :
-  [By] extends 'lr' ? ([Tuple[0]] extends [never] ? never : ([Tuple[1]] extends [never] ? never : Tuple)) :
-  never
-;
-
 
 // ATOMS
-type NNA<L, R> = Filter<[Extract<L, _>, Extract<R, _>], 'lr'>; // [_, _];
-type LNA<L, R> = Filter<[Exclude<L, _>, Extract<R, _>], 'lr'>; // [L, _];
-type NRA<L, R> = Filter<[Extract<L, _>, Exclude<R, _>], 'lr'>; // [_, R];
-type LRA<L, R> = Filter<[Exclude<L, _>, Exclude<R, _>], 'lr'>; // [L, R];
+type NNA<L, R> = [_, _];
+type LNA<L, R> = [L, _];
+type NRA<L, R> = [_, R];
+type LRA<L, R> = [L, R];
 
 // To better understand atoms with letter B in code, see according compacted
 type NBA<L, R> = NRA<L, R> | NNA<L, R>;
@@ -52,11 +44,11 @@ type LNC<L, R> = LNA<L, R>;
 type NRC<L, R> = NRA<L, R>;
 type LRC<L, R> = LRA<L, R>;
 
-type NBC<L, R> = Filter<[Extract<L, _>, R            ], 'l-'>; // [_    , R | _];
-type LBC<L, R> = Filter<[Exclude<L, _>, R            ], 'l-'>; // [L    , R | _];
-type BRC<L, R> = Filter<[L            , Exclude<R, _>], '-r'>; // [L | _, R    ];
-type BNC<L, R> = Filter<[L            , Extract<R, _>], '-r'>; // [L | _, _    ];
-type BBC<L, R> = Filter<[L            , R            ], '--'>; // [L | _, R | _];
+type NBC<L, R> = [_    , R | _];
+type LBC<L, R> = [L    , R | _];
+type BRC<L, R> = [L | _, R    ];
+type BNC<L, R> = [L | _, _    ];
+type BBC<L, R> = [L | _, R | _];
 
 // EXPANDED
 type NNE<L, R> = NNA<L, R>;
@@ -72,6 +64,68 @@ type BNE<L, R> = BNA<L, R> | BNC<L, R>;
 type BBE<L, R> = BBA<L, R> | BBC<L, R>
   | NBC<L, R> | LBC<L, R> | BRC<L, R> | BNC<L, R>
 ;
+
+
+
+
+
+
+
+
+
+type Filter<Tuple extends [any, any], By extends '--' | 'l-' | '-r' | 'lr'> =
+  [By] extends '--' ? Tuple :
+  [By] extends 'l-' ? ([Tuple[0]] extends [never] ? never : Tuple) :
+  [By] extends '-r' ? ([Tuple[1]] extends [never] ? never : Tuple) :
+  [By] extends 'lr' ? ([Tuple[0]] extends [never] ? never : ([Tuple[1]] extends [never] ? never : Tuple)) :
+  never
+;
+
+// ATOMS
+type toNNA<L, R> = Filter<[Extract<L, _>, Extract<R, _>], 'lr'>; // [_, _];
+type toLNA<L, R> = Filter<[Exclude<L, _>, Extract<R, _>], 'lr'>; // [L, _];
+type toNRA<L, R> = Filter<[Extract<L, _>, Exclude<R, _>], 'lr'>; // [_, R];
+type toLRA<L, R> = Filter<[Exclude<L, _>, Exclude<R, _>], 'lr'>; // [L, R];
+
+// To better understand atoms with letter B in code, see according compacted
+type toNBA<L, R> = toNRA<L, R> | toNNA<L, R>;
+type toLBA<L, R> = toLNA<L, R> | toLRA<L, R>;
+type toBRA<L, R> = toNRA<L, R> | toLRA<L, R>;
+type toBNA<L, R> = toNNA<L, R> | toLNA<L, R>;
+type toBBA<L, R> = toNNA<L, R> | toLNA<L, R> | toNRA<L, R> | toLRA<L, R>;
+
+// COMPACTED
+type toNNC<L, R> = toNNA<L, R>;
+type toLNC<L, R> = toLNA<L, R>;
+type toNRC<L, R> = toNRA<L, R>;
+type toLRC<L, R> = toLRA<L, R>;
+
+type toNBC<L, R> = Filter<[Extract<L, _>, R            ], 'l-'>; // [_    , R | _];
+type toLBC<L, R> = Filter<[Exclude<L, _>, R            ], 'l-'>; // [L    , R | _];
+type toBRC<L, R> = Filter<[L            , Exclude<R, _>], '-r'>; // [L | _, R    ];
+type toBNC<L, R> = Filter<[L            , Extract<R, _>], '-r'>; // [L | _, _    ];
+type toBBC<L, R> = Filter<[L            , R            ], '--'>; // [L | _, R | _];
+
+// EXPANDED
+type toNNE<L, R> = toNNA<L, R>;
+type toLNE<L, R> = toLNA<L, R>;
+type toNRE<L, R> = toNRA<L, R>;
+type toLRE<L, R> = toLRA<L, R>;
+
+type toNBE<L, R> = toNBA<L, R> | toNBC<L, R>;
+type toLBE<L, R> = toLBA<L, R> | toLBC<L, R>;
+type toBRE<L, R> = toBRA<L, R> | toBRC<L, R>;
+type toBNE<L, R> = toBNA<L, R> | toBNC<L, R>;
+
+type toBBE<L, R> = toBBA<L, R> | toBBC<L, R>
+  | toNBC<L, R> | toLBC<L, R> | toBRC<L, R> | toBNC<L, R>
+;
+
+
+
+
+
+
 
 
 
@@ -94,7 +148,7 @@ type Magic1<
   [Flags] extends ['100'] ? 'LN' : // left join excluding inner
   [Flags] extends ['101'] ? 'LB' | 'BR' : // full outer join excluding inner
   [Flags] extends ['110'] ? 'LB' : // left outer join (left join)
-  [Flags] extends ['111'] ? 'BB' : // full outer join
+  [Flags] extends ['111'] ? 'BB' : // full outer join (full join)
   never
 ;
 
@@ -196,24 +250,33 @@ type SelectUnion2<
 
 
 
-//
-
-
-
-
 
 
 // comparator = (l, r) => l === r;
 
 function isEmpty<T>(v: T): v is Extract<T, _> {
-  return v === emptiness;
+  return v === _;
 }
 
 function isNotEmpty<T>(v: T): v is Exclude<T, _> {
-  return v !== emptiness;
+  return v !== _;
 }
 
-function castToBBA<L, R>(lr: BBE<L, R>): asserts lr is BBA<L, R> {
+const nn = [_, _  ] as Merge<NNA<number, string>>;
+const nr = [_, 's'] as Merge<NRA<number, string>>;
+const nb = [_, 'a'] as Merge<NBA<number, string>>;
+const ln = [1, _  ] as Merge<LNA<number, string>>;
+const lr = [1, 's'] as Merge<LRA<number, string>>;
+const lb = [1, '1'] as Merge<LBA<number, string>>;
+const bn = [1, _  ] as Merge<BNA<number, string>>;
+const br = [_, '1'] as Merge<BRA<number, string>>;
+const bb = [1, '1'] as Merge<BBA<number, string>>;
+
+
+let test = nb[0]
+
+
+function castToBBA<L, R>(lr: [unknown, unknown]): asserts lr is BBA<L, R> {
   // TODO: check l is L and r is R
 
   const [l, r] = lr;
@@ -228,25 +291,24 @@ function castToBBA<L, R>(lr: BBE<L, R>): asserts lr is BBA<L, R> {
   throw new Error(`What the actual fuck??? lr is ${lr}`);
 }
 
-function getAllCombinations<L extends number, R extends number>(
+function getAllCombinations<L, R>(
   left: Set<L>,
   right: Set<R>,
-  isL: (l: L | _) => l is L,
-  isR: (r: R | _) => r is R
+  isL: (l: unknown) => l is L,
+  isR: (r: unknown) => r is R
 ): Set<BBA<L, R>> {
   const extendedLeft  = new Set<L | _>(left);
-
-  extendedLeft.add(emptiness);
+  extendedLeft.add(_);
 
   const extendedRight = new Set<R | _>(right);
-  extendedRight.add(emptiness);
+  extendedRight.add(_);
 
   const result = new Set<BBA<L, R>>();
 
   for (const l of extendedLeft) {
     for (const r of extendedRight) {
-      const lr = [l, r] as [_|L, _|R];
-      castToBBA(lr);
+      const lr = [l, r] as Merge<BBE<L, R>>;
+      castToBBA<L, R>(lr);
       result.add(lr);
     }
   }
@@ -256,20 +318,18 @@ function getAllCombinations<L extends number, R extends number>(
 
 
 
-type _ = typeof emptiness;
+type _ = typeof _;
 
 
 
+type LeftExclusiveJoin <L, R> = Magic1<'100'>; // +
+type InnerJoin         <L, R> = Magic1<'010'>; // +
+type RightExclusiveJoin<L, R> = Magic1<'001'>; // +
 
-
-type LeftExclusiveJoin <L, R> = Magic1<'100'>;
-type InnerJoin         <L, R> = Magic1<'010'>;
-type RightExclusiveJoin<L, R> = Magic1<'001'>;
-
-type LeftJoin          <L, R> = Magic1<'110'>;
-type RightJoin         <L, R> = Magic1<'011'>;
-type FullJoin          <L, R> = Magic1<'111'>;
-type FullExclusiveJoin <L, R> = Magic1<'101'>;
+type LeftJoin          <L, R> = Magic1<'110'>; // +
+type RightJoin         <L, R> = Magic1<'011'>; // +
+type FullJoin          <L, R> = Magic1<'111'>; // +
+type FullExclusiveJoin <L, R> = Magic1<'101'>; // +
 
 type LeftOuterJoin<L, R> = LeftJoin<L, R>;
 type RightOuterJoin<L, R> = RightJoin<L, R>;
