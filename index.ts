@@ -23,11 +23,21 @@ type Possible2ndLetter = 'N' | 'R' | 'B';
 // R - Right element(R)   . 2nd element of the tuple is R
 // B - Both               . 2nd element of the tuple is (_ | R)
 
+
+type Filter<Tuple extends [any, any], By extends '--' | 'l-' | '-r' | 'lr'> =
+  [By] extends '--' ? Tuple :
+  [By] extends 'l-' ? ([Tuple[0]] extends [never] ? never : Tuple) :
+  [By] extends '-r' ? ([Tuple[1]] extends [never] ? never : Tuple) :
+  [By] extends 'lr' ? ([Tuple[0]] extends [never] ? never : ([Tuple[1]] extends [never] ? never : Tuple)) :
+  never
+;
+
+
 // ATOMS
-type NNA<L, R> = [_, _];
-type LNA<L, R> = [L, _];
-type NRA<L, R> = [_, R];
-type LRA<L, R> = [L, R];
+type NNA<L, R> = Filter<[Extract<L, _>, Extract<R, _>], 'lr'>; // [_, _];
+type LNA<L, R> = Filter<[Exclude<L, _>, Extract<R, _>], 'lr'>; // [L, _];
+type NRA<L, R> = Filter<[Extract<L, _>, Exclude<R, _>], 'lr'>; // [_, R];
+type LRA<L, R> = Filter<[Exclude<L, _>, Exclude<R, _>], 'lr'>; // [L, R];
 
 // To better understand atoms with letter B in code, see according compacted
 type NBA<L, R> = NRA<L, R> | NNA<L, R>;
@@ -42,11 +52,11 @@ type LNC<L, R> = LNA<L, R>;
 type NRC<L, R> = NRA<L, R>;
 type LRC<L, R> = LRA<L, R>;
 
-type NBC<L, R> = [_    , R | _];
-type LBC<L, R> = [L    , R | _];
-type BRC<L, R> = [L | _, R    ];
-type BNC<L, R> = [L | _, _    ];
-type BBC<L, R> = [L | _, R | _];
+type NBC<L, R> = Filter<[Extract<L, _>, R            ], 'l-'>; // [_    , R | _];
+type LBC<L, R> = Filter<[Exclude<L, _>, R            ], 'l-'>; // [L    , R | _];
+type BRC<L, R> = Filter<[L            , Exclude<R, _>], '-r'>; // [L | _, R    ];
+type BNC<L, R> = Filter<[L            , Extract<R, _>], '-r'>; // [L | _, _    ];
+type BBC<L, R> = Filter<[L            , R            ], '--'>; // [L | _, R | _];
 
 // EXPANDED
 type NNE<L, R> = NNA<L, R>;
@@ -71,19 +81,20 @@ type ShouldAddInnerPart = '0' | '1';
 type ShouldAddRightExclusivePart = '0' | '1';
 
 type PossiblePartsFlagCombinations =
-  `${ShouldAddLeftExclusivePart}${ShouldAddInnerPart}${ShouldAddRightExclusivePart}`;
+  `${ShouldAddLeftExclusivePart}${ShouldAddInnerPart}${ShouldAddRightExclusivePart}`
+;
 
 type Magic1<
   Flags extends PossiblePartsFlagCombinations,
 > =
-  [Flags] extends ['000'] ? 'NNE' :
-  [Flags] extends ['001'] ? 'NRE' : // right join excluding inner
-  [Flags] extends ['010'] ? 'LRE' : // inner join
-  [Flags] extends ['011'] ? 'BRE' : // right outer join (right join)
-  [Flags] extends ['100'] ? 'LNE' : // left join excluding inner
-  [Flags] extends ['101'] ? 'LBE' | 'BRE' : // full outer join excluding inner
-  [Flags] extends ['110'] ? 'LBE' : // left outer join (left join)
-  [Flags] extends ['111'] ? 'BBE' : // full outer join
+  [Flags] extends ['000'] ? 'NN' :
+  [Flags] extends ['001'] ? 'NR' : // right join excluding inner
+  [Flags] extends ['010'] ? 'LR' : // inner join
+  [Flags] extends ['011'] ? 'BR' : // right outer join (right join)
+  [Flags] extends ['100'] ? 'LN' : // left join excluding inner
+  [Flags] extends ['101'] ? 'LB' | 'BR' : // full outer join excluding inner
+  [Flags] extends ['110'] ? 'LB' : // left outer join (left join)
+  [Flags] extends ['111'] ? 'BB' : // full outer join
   never
 ;
 
@@ -91,14 +102,14 @@ type Magic2<
   Flags extends PossiblePartsFlagCombinations,
 > =
   {
-    '000': 'NNE';
-    '001': 'NRE';
-    '010': 'LRE';
-    '011': 'BRE';
-    '100': 'LNE';
-    '101': 'LBE' | 'BRE';
-    '110': 'LBE';
-    '111': 'BBE';
+    '000': 'NN';
+    '001': 'NR';
+    '010': 'LR';
+    '011': 'BR';
+    '100': 'LN';
+    '101': 'LB' | 'BR';
+    '110': 'LB';
+    '111': 'BB';
   }[Flags]
 ;
 
@@ -107,14 +118,16 @@ type Magic2<
 type UsedFlags = Magic2<PossiblePartsFlagCombinations>
 
 
-type PossibleLetterCombinations =
+type PossibleAllLettersCombinations =
   `${Possible1stLetter}${Possible2ndLetter}${Possible3rdLetter}`;
 
+type PossibleFirstTwoLettersCombinations =
+  `${Possible1stLetter}${Possible2ndLetter}`;
 
 type SelectUnion1<
   L,
   R,
-  Letters extends PossibleLetterCombinations
+  Letters extends PossibleAllLettersCombinations
 > =
   [Letters] extends ['NNA'] ? NNA<L, R> :
   [Letters] extends ['LNA'] ? LNA<L, R> :
@@ -149,7 +162,7 @@ type SelectUnion1<
 type SelectUnion2<
   L,
   R,
-  LettersUnion extends PossibleLetterCombinations
+  LettersUnion extends PossibleAllLettersCombinations
 > = {
   'NNA': NNA<L, R>;
   'LNA': LNA<L, R>;
@@ -200,7 +213,7 @@ function isNotEmpty<T>(v: T): v is Exclude<T, _> {
   return v !== emptiness;
 }
 
-function assertPlainLR<L, R>(lr: C_all<L, R>): asserts lr is C_plain<L, R> {
+function castToBBA<L, R>(lr: BBE<L, R>): asserts lr is BBA<L, R> {
   // TODO: check l is L and r is R
 
   const [l, r] = lr;
@@ -215,12 +228,12 @@ function assertPlainLR<L, R>(lr: C_all<L, R>): asserts lr is C_plain<L, R> {
   throw new Error(`What the actual fuck??? lr is ${lr}`);
 }
 
-function getAllCombinations<L, R>(
+function getAllCombinations<L extends number, R extends number>(
   left: Set<L>,
   right: Set<R>,
   isL: (l: L | _) => l is L,
   isR: (r: R | _) => r is R
-): Set<C_plain<L, R>> {
+): Set<BBA<L, R>> {
   const extendedLeft  = new Set<L | _>(left);
 
   extendedLeft.add(emptiness);
@@ -228,12 +241,12 @@ function getAllCombinations<L, R>(
   const extendedRight = new Set<R | _>(right);
   extendedRight.add(emptiness);
 
-  const result = new Set<C_plain<L, R>>();
+  const result = new Set<BBA<L, R>>();
 
   for (const l of extendedLeft) {
     for (const r of extendedRight) {
-      const lr = [l, r] as C33<L, R>;
-      assertPlainLR(lr)
+      const lr = [l, r] as [_|L, _|R];
+      castToBBA(lr);
       result.add(lr);
     }
   }
@@ -247,27 +260,16 @@ type _ = typeof emptiness;
 
 
 
-type C_plain<L, R> = C11<L, R> | C21<L, R> | C12<L, R> | C22<L, R>;
 
-type C_all<L, R> =
-  | C11<L, R>
-  | C21<L, R>
-  | C31<L, R>
-  | C12<L, R>
-  | C22<L, R>
-  | C32<L, R>
-  | C13<L, R>
-  | C23<L, R>
-  | C33<L, R>;
 
-type LeftExclusiveJoin <L, R> = Magic<L, R, true,  false, false>;
-type InnerJoin         <L, R> = Magic<L, R, false, true,  false>;
-type RightExclusiveJoin<L, R> = Magic<L, R, false, false, true >;
+type LeftExclusiveJoin <L, R> = Magic1<'100'>;
+type InnerJoin         <L, R> = Magic1<'010'>;
+type RightExclusiveJoin<L, R> = Magic1<'001'>;
 
-type LeftJoin          <L, R> = Magic<L, R, true,  true,  false>;
-type RightJoin         <L, R> = Magic<L, R, false, true,  true >;
-type FullJoin          <L, R> = Magic<L, R, true,  true,  true >;
-type FullExclusiveJoin <L, R> = Magic<L, R, true,  false, true >;
+type LeftJoin          <L, R> = Magic1<'110'>;
+type RightJoin         <L, R> = Magic1<'011'>;
+type FullJoin          <L, R> = Magic1<'111'>;
+type FullExclusiveJoin <L, R> = Magic1<'101'>;
 
 type LeftOuterJoin<L, R> = LeftJoin<L, R>;
 type RightOuterJoin<L, R> = RightJoin<L, R>;
