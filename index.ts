@@ -91,7 +91,7 @@ type Filter<
   [By] extends ['l-'] ? FilterOne<Tuple, 0> :
   [By] extends ['-r'] ? FilterOne<Tuple, 1> :
   [By] extends ['lr'] ? FilterOne<FilterOne<Tuple, 0>, 1> :
-  never
+  ForbiddenLiteralUnion<'By', 'Filter<Tuple, By>'>
 ;
 
 type to_<T> = Extract<T, _>;
@@ -153,6 +153,13 @@ type PossiblePartsFlagCombinations =
   `${ShouldAddLeftExclusivePart}${ShouldAddInnerPart}${ShouldAddRightExclusivePart}`
 ;
 
+// it's intentionally [Flags] extends ['___'] so that if union of flags
+// is passed, it won't ignore all elements except the first element of the
+// union. It will reject the whole union and throw error
+type ForbiddenLiteralUnion<Argument extends string, OfTypeName extends string> =
+  `Argument ${Argument} of ${OfTypeName} accepts only single string literal (literal union is forbidden).`
+;
+
 type Magic1<Flags extends PossiblePartsFlagCombinations> =
   [Flags] extends ['000'] ? 'NN' :
   [Flags] extends ['001'] ? 'NR' : // right join excluding inner
@@ -162,7 +169,7 @@ type Magic1<Flags extends PossiblePartsFlagCombinations> =
   [Flags] extends ['101'] ? 'LB' | 'BR' : // full outer join excluding inner
   [Flags] extends ['110'] ? 'LB' : // left outer join (left join)
   [Flags] extends ['111'] ? 'BB' : // full outer join (full join)
-  never
+  ForbiddenLiteralUnion<'Flags', 'Magic1<Flags>'>
 ;
 
 type Magic2<Flags extends PossiblePartsFlagCombinations> =
@@ -222,7 +229,7 @@ type SelectUnion1<
   [Letters] extends ['BRE'] ? BRE<L, R> :
   [Letters] extends ['BNE'] ? BNE<L, R> :
   [Letters] extends ['BBE'] ? BBE<L, R> :
-  never
+  ForbiddenLiteralUnion<'Letters', 'SelectUnion1<L, R, Letters>'>
 ;
 
 type SelectUnion2<
@@ -260,6 +267,24 @@ type SelectUnion2<
 }[LettersUnion];
 
 
+
+type Joiner<L, R, Flags extends PossiblePartsFlagCombinations> =
+  Magic1<Flags> extends PossibleFirstTwoLettersCombinations
+    ? Merge<SelectUnion1<L, R, `${Magic1<Flags>}E`>>
+    : ForbiddenLiteralUnion<'Flags', 'Joiner<L, R, Flags>'>
+;
+
+type LeftExclusiveJoin <L, R> = Joiner<L, R, '100'|'101'>;
+type InnerJoin         <L, R> = Joiner<L, R, '010'>;
+type RightExclusiveJoin<L, R> = Joiner<L, R, '001'>;
+type LeftJoin          <L, R> = Joiner<L, R, '110'>;
+type RightJoin         <L, R> = Joiner<L, R, '011'>;
+type FullJoin          <L, R> = Joiner<L, R, '111'>;
+type FullExclusiveJoin <L, R> = Joiner<L, R, '101'>;
+
+type LeftOuterJoin<L, R> = LeftJoin<L, R>;
+type RightOuterJoin<L, R> = RightJoin<L, R>;
+type FullOuterJoin<L, R> = FullJoin<L, R>;
 
 
 // comparator = (l, r) => l === r;
@@ -334,21 +359,7 @@ function getAllCombinations<L, R>(
 
 
 
-type Joiner<L, R, Flags extends PossiblePartsFlagCombinations> =
-  Merge<SelectUnion2<L, R, `${Magic1<Flags>}E`>>
-;
 
-type LeftExclusiveJoin <L, R> = Joiner<L, R, '100'>;
-type InnerJoin         <L, R> = Joiner<L, R, '010'>;
-type RightExclusiveJoin<L, R> = Joiner<L, R, '001'>;
-type LeftJoin          <L, R> = Joiner<L, R, '110'>;
-type RightJoin         <L, R> = Joiner<L, R, '011'>;
-type FullJoin          <L, R> = Joiner<L, R, '111'>;
-type FullExclusiveJoin <L, R> = Joiner<L, R, '101'>;
-
-type LeftOuterJoin<L, R> = LeftJoin<L, R>;
-type RightOuterJoin<L, R> = RightJoin<L, R>;
-type FullOuterJoin<L, R> = FullJoin<L, R>;
 
 let asd: FullOuterJoin<number, string>;
 asd = [123, _]
