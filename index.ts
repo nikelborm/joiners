@@ -81,14 +81,16 @@ type FilterOne<
   Pos extends 0 | 1
 > = [Tuple[Pos]] extends [never] ? never : Tuple;
 
+
+
 type Filter<
   Tuple extends [any, any],
   By extends '--' | 'l-' | '-r' | 'lr'
 > =
-  [By] extends '--' ? Tuple :
-  [By] extends 'l-' ? FilterOne<Tuple, 0> :
-  [By] extends '-r' ? FilterOne<Tuple, 1> :
-  [By] extends 'lr' ? FilterOne<FilterOne<Tuple, 0>, 1> :
+  [By] extends ['--'] ? Tuple :
+  [By] extends ['l-'] ? FilterOne<Tuple, 0> :
+  [By] extends ['-r'] ? FilterOne<Tuple, 1> :
+  [By] extends ['lr'] ? FilterOne<FilterOne<Tuple, 0>, 1> :
   never
 ;
 
