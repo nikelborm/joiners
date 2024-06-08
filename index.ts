@@ -269,6 +269,8 @@ assert<Equals<FullJoin<A, B>,
   | [A,     B | _]
 >>();
 
+
+
 type LeftExclusiveJoin <L, R> = Joiner<L, R, '100'>;
 type InnerJoin         <L, R> = Joiner<L, R, '010'>;
 type RightExclusiveJoin<L, R> = Joiner<L, R, '001'>;
@@ -321,29 +323,37 @@ function castToBBA<L, R>(lr: [unknown, unknown]): asserts lr is BBA<L, R> {
   throw new Error(`What the actual fuck??? lr is ${lr}`);
 }
 
-function getAllCombinations<L, R>(
+function * getAllCombinationsByEulerDiagramParts<
+  Detailing extends DetailingModifier,
+  const EulerDiagramParts extends EulerDiagramPartsCombinations,
+  L,
+  R
+>(
   left: Set<L>,
   right: Set<R>,
-  isL: (l: unknown) => l is L,
-  isR: (r: unknown) => r is R
+  eulerDiagramParts: EulerDiagramParts
 ) {
-  const extendedLeft  = new Set<L | _>(left);
-  extendedLeft.add(_);
+  const bits = parseInt(eulerDiagramParts, 2);
 
-  const extendedRight = new Set<R | _>(right);
-  extendedRight.add(_);
-
-  const result = new Set<BBA<L, R>>();
-
-  for (const l of extendedLeft) {
-    for (const r of extendedRight) {
-      const lr = [l, r] as Merge<BBE<L, R>>;
-      castToBBA<L, R>(lr);
-      result.add(lr);
+  if(bits & 0b100) {
+    for (const l of left) {
+      yield [l, _] satisfies LNA<L, R>;
     }
   }
 
-  return result;
+  if(bits & 0b001) {
+    for (const r of right) {
+      yield [_, r] satisfies NRA<L, R>;
+    }
+  }
+
+  if(bits & 0b010) {
+    for (const l of left) {
+      for (const r of right) {
+        yield [l, r] satisfies LRA<L, R>;
+      }
+    }
+  }
 }
 
 
