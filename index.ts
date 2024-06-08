@@ -14,13 +14,6 @@ import type {
 
 
 
-const left = new Set([1, 2, 3, 4]);
-const right = new Set([3, 4, 5, 6]);
-
-
-
-// comparator = (l, r) => l === r;
-
 // function isEmpty<T>(v: T): v is to_<T> {
 //   return v === _;
 // }
@@ -45,42 +38,6 @@ const right = new Set([3, 4, 5, 6]);
 //   throw new Error(`What the actual fuck??? lr is ${lr}`);
 // }
 
-// function * getAllCombinationsByEulerDiagramParts<
-//   const Detailing extends DetailingModifier,
-//   const EulerDiagramParts extends EulerDiagramPartsCombinations,
-//   L,
-//   R,
-//   ReturnedType = Joiner<L, R, EulerDiagramParts, Detailing>
-// >(
-//   left: Iterable<L>,
-//   right: Iterable<R>,
-//   eulerDiagramParts: EulerDiagramParts,
-//   detailingModifier: Detailing = 'A' as Detailing
-// ): Generator<ReturnedType> {
-  // const bits = parseInt(eulerDiagramParts, 2);
-
-
-
-
-
-//   if(bits & 0b010) {
-//     for (const l of left) {
-//       for (const r of right) {
-//         yield ([l, r] satisfies LRA<L, R>) as ReturnedType;
-//       }
-//     }
-//   }
-// }
-
-// for (const tuple of getAllCombinationsByEulerDiagramParts(
-//   [1, 2],
-//   [2, 3],
-//   '111',
-//   'A'
-// )) {
-//   console.log(tuple);
-
-// }
 
 
 
