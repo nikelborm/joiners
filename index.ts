@@ -283,9 +283,15 @@ type LeftJoin          <L, R> = Joiner<L, R, '110', 'E'>;
 type RightJoin         <L, R> = Joiner<L, R, '011', 'E'>;
 type FullJoin          <L, R> = Joiner<L, R, '111', 'E'>;
 type FullExclusiveJoin <L, R> = Joiner<L, R, '101', 'E'>;
+
 type LeftOuterJoin<L, R> = LeftJoin<L, R>;
 type RightOuterJoin<L, R> = RightJoin<L, R>;
 type FullOuterJoin<L, R> = FullJoin<L, R>;
+type LeftAntiJoin<L, R> = LeftExclusiveJoin<L, R>;
+type RightAntiJoin<L, R> = RightExclusiveJoin<L, R>;
+type FullAntiJoin<L, R> = FullExclusiveJoin<L, R>;
+type SimpleJoin<L, R> = InnerJoin<L, R>;
+type CrossJoin<L, R> = InnerJoin<L, R>;
 
 
 // comparator = (l, r) => l === r;
@@ -297,20 +303,6 @@ function isEmpty<T>(v: T): v is to_<T> {
 function isNotEmpty<T>(v: T): v is toV<T> {
   return v !== _;
 }
-
-type helper<LettersUnion extends TupleStructureCodeToDetailingModifierCombinations> =
-  Merge<SelectJoinedTuples<number, string, LettersUnion>>
-;
-
-const nr = [_, 's'] as helper<'NRA'>;
-const ln = [1, _  ] as helper<'LNA'>;
-const lr = [1, 's'] as helper<'LRA'>;
-const lb = [1, '1'] as helper<'LBA'>;
-const br = [_, '1'] as helper<'BRA'>;
-const bb = [1, '1'] as helper<'BBA'>;
-
-
-let test = nr[0]
 
 
 function castToBBA<L, R>(lr: [unknown, unknown]): asserts lr is BBA<L, R> {
@@ -333,62 +325,194 @@ function * getAllCombinationsByEulerDiagramParts<
   const EulerDiagramParts extends EulerDiagramPartsCombinations,
   L,
   R,
-  ReturnType = Joiner<L, R, EulerDiagramParts, Detailing>
+  ReturnedType = Joiner<L, R, EulerDiagramParts, Detailing>
 >(
   left: Set<L>,
   right: Set<R>,
   eulerDiagramParts: EulerDiagramParts,
   detailingModifier: Detailing = 'A' as Detailing
-): Generator<ReturnType> {
+): Generator<ReturnedType> {
   const bits = parseInt(eulerDiagramParts, 2);
 
   if(bits & 0b100) {
     for (const l of left) {
-      yield ([l, _] satisfies LNA<L, R>) as ReturnType;
+      yield ([l, _] satisfies LNA<L, R>) as ReturnedType;
     }
   }
 
   if(bits & 0b001) {
     for (const r of right) {
-      yield ([_, r] satisfies NRA<L, R>) as ReturnType;
+      yield ([_, r] satisfies NRA<L, R>) as ReturnedType;
     }
   }
 
   if(bits & 0b010) {
     for (const l of left) {
       for (const r of right) {
-        yield ([l, r] satisfies LRA<L, R>) as ReturnType;
+        yield ([l, r] satisfies LRA<L, R>) as ReturnedType;
       }
     }
   }
 }
 
-const generator = getAllCombinationsByEulerDiagramParts(
-  new Set(['12']),
-  new Set([12]),
-  '101'
-)
-
+function getComparator() {}
 
 for (const tuple of getAllCombinationsByEulerDiagramParts(
-  new Set(['12']),
-  new Set([12]),
+  new Set([1, 2]),
+  new Set([2, 3]),
   '111',
-  'C'
+  'A'
 )) {
+  console.log(tuple);
 
 }
 
 
 
+// function * join<
+//   const Detailing extends DetailingModifier,
+//   const EulerDiagramParts extends EulerDiagramPartsCombinations,
+//   L,
+//   R,
+//   TupleType = Joiner<L, R, EulerDiagramParts, Detailing>
+// >(
+//   left: Set<L>,
+//   right: Set<R>,
+//   compare: (tuple: LRA<L, R>) => boolean,
+//   merge: (tuple: TupleType) => boolean,
+// ) {
+//   for (const l of left) {
+//     for (const r of right) {
+//       const tuple = [l, r] satisfies LRA<L, R>;
+//       if(compare(tuple)) {
+//         yield ( satisfies LRA<L, R>) as TupleType;
+//       }
+
+//     }
+//   }
+// }
 
 
-let asd: FullOuterJoin<number, string>;
-asd = [123, _]
+// create table a(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY, v int);
+// create table b(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY, v int);
+// insert into a(v) values (6), (6), (7), (7), (9);
+// insert into b(v) values (7), (7), (8), (8), (10);
 
-function join<L, R>(
-  left: Set<L>,
-  right: Set<R>,
-  compare: (l: L, r: R) => boolean,
-  merge: (l: L, r: R) => boolean,
-) {}
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a left       join b using (v);
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a left outer join b using (v);
+//  a.id | b.id | a.v | b.v
+// ------+------+-----+-----
+//     1 |      |   6 |
+//     2 |      |   6 |
+//     3 |    1 |   7 |   7
+//     3 |    2 |   7 |   7
+//     4 |    1 |   7 |   7
+//     4 |    2 |   7 |   7
+//     5 |      |   9 |
+// (7 rows)
+
+
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a right       join b using (v);
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a right outer join b using (v);
+//  a.id | b.id | a.v | b.v
+// ------+------+-----+-----
+//     3 |    1 |   7 |   7
+//     4 |    1 |   7 |   7
+//     3 |    2 |   7 |   7
+//     4 |    2 |   7 |   7
+//       |    3 |     |   8
+//       |    4 |     |   8
+//       |    5 |     |  10
+// (7 rows)
+
+
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a full       join b using (v);
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a full outer join b using (v);
+//  a.id | b.id | a.v | b.v
+// ------+------+-----+-----
+//     1 |      |   6 |
+//     2 |      |   6 |
+//     3 |    1 |   7 |   7
+//     3 |    2 |   7 |   7
+//     4 |    1 |   7 |   7
+//     4 |    2 |   7 |   7
+//       |    3 |     |   8
+//       |    4 |     |   8
+//     5 |      |   9 |
+//       |    5 |     |  10
+// (10 rows)
+
+
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a       join b using (v);
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a inner join b using (v);
+//  a.id | b.id | a.v | b.v
+// ------+------+-----+-----
+//     3 |    1 |   7 |   7
+//     3 |    2 |   7 |   7
+//     4 |    1 |   7 |   7
+//     4 |    2 |   7 |   7
+// (4 rows)
+
+
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a cross join b;
+//  a.id | b.id | a.v | b.v
+// ------+------+-----+-----
+//     1 |    1 |   6 |   7
+//     1 |    2 |   6 |   7
+//     1 |    3 |   6 |   8
+//     1 |    4 |   6 |   8
+//     1 |    5 |   6 |  10
+//     2 |    1 |   6 |   7
+//     2 |    2 |   6 |   7
+//     2 |    3 |   6 |   8
+//     2 |    4 |   6 |   8
+//     2 |    5 |   6 |  10
+//     3 |    1 |   7 |   7
+//     3 |    2 |   7 |   7
+//     3 |    3 |   7 |   8
+//     3 |    4 |   7 |   8
+//     3 |    5 |   7 |  10
+//     4 |    1 |   7 |   7
+//     4 |    2 |   7 |   7
+//     4 |    3 |   7 |   8
+//     4 |    4 |   7 |   8
+//     4 |    5 |   7 |  10
+//     5 |    1 |   9 |   7
+//     5 |    2 |   9 |   7
+//     5 |    3 |   9 |   8
+//     5 |    4 |   9 |   8
+//     5 |    5 |   9 |  10
+// (25 rows)
+
+
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a left       join b using (v) where b.v is null;
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a left outer join b using (v) where b.v is null;
+//  a.id | b.id | a.v | b.v
+// ------+------+-----+-----
+//     1 |      |   6 |
+//     2 |      |   6 |
+//     5 |      |   9 |
+// (3 rows)
+
+
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a right       join b using (v) where true;
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a right outer join b using (v) where a.v is null;
+//  a.id | b.id | a.v | b.v
+// ------+------+-----+-----
+//       |    3 |     |   8
+//       |    4 |     |   8
+//       |    5 |     |  10
+// (3 rows)
+
+
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a full       join b using (v) where a.v is null or b.v is null;
+// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a full outer join b using (v) where a.v is null or b.v is null;
+//  a.id | b.id | a.v | b.v
+// ------+------+-----+-----
+//     1 |      |   6 |
+//     2 |      |   6 |
+//       |    3 |     |   8
+//       |    4 |     |   8
+//     5 |      |   9 |
+//       |    5 |     |  10
+// (6 rows)
