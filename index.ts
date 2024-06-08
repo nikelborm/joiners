@@ -285,14 +285,15 @@ type RightJoin         <L, R> = Joiner<L, R, '011', 'E'>;
 type FullJoin          <L, R> = Joiner<L, R, '111', 'E'>;
 type FullExclusiveJoin <L, R> = Joiner<L, R, '101', 'E'>;
 
-type LeftOuterJoin<L, R> = LeftJoin<L, R>;
+type LeftOuterJoin <L, R> = LeftJoin<L, R>;
 type RightOuterJoin<L, R> = RightJoin<L, R>;
-type FullOuterJoin<L, R> = FullJoin<L, R>;
-type LeftAntiJoin<L, R> = LeftExclusiveJoin<L, R>;
-type RightAntiJoin<L, R> = RightExclusiveJoin<L, R>;
-type FullAntiJoin<L, R> = FullExclusiveJoin<L, R>;
-type SimpleJoin<L, R> = InnerJoin<L, R>;
-type CrossJoin<L, R> = InnerJoin<L, R>;
+type FullOuterJoin <L, R> = FullJoin<L, R>;
+type LeftAntiJoin  <L, R> = LeftExclusiveJoin<L, R>;
+type RightAntiJoin <L, R> = RightExclusiveJoin<L, R>;
+type FullAntiJoin  <L, R> = FullExclusiveJoin<L, R>;
+type Join          <L, R> = InnerJoin<L, R>;
+type SimpleJoin    <L, R> = InnerJoin<L, R>;
+type CrossJoin     <L, R> = InnerJoin<L, R>;
 
 
 // comparator = (l, r) => l === r;
@@ -392,128 +393,3 @@ for (const tuple of getAllCombinationsByEulerDiagramParts(
 //     }
 //   }
 // }
-
-
-// create table a(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY, v int);
-// create table b(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY, v int);
-// insert into a(v) values (6), (6), (7), (7), (9);
-// insert into b(v) values (7), (7), (8), (8), (10);
-
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a left       join b using (v);
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a left outer join b using (v);
-//  a.id | b.id | a.v | b.v
-// ------+------+-----+-----
-//     1 |      |   6 |
-//     2 |      |   6 |
-//     3 |    1 |   7 |   7
-//     3 |    2 |   7 |   7
-//     4 |    1 |   7 |   7
-//     4 |    2 |   7 |   7
-//     5 |      |   9 |
-// (7 rows)
-
-
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a right       join b using (v);
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a right outer join b using (v);
-//  a.id | b.id | a.v | b.v
-// ------+------+-----+-----
-//     3 |    1 |   7 |   7
-//     4 |    1 |   7 |   7
-//     3 |    2 |   7 |   7
-//     4 |    2 |   7 |   7
-//       |    3 |     |   8
-//       |    4 |     |   8
-//       |    5 |     |  10
-// (7 rows)
-
-
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a full       join b using (v);
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a full outer join b using (v);
-//  a.id | b.id | a.v | b.v
-// ------+------+-----+-----
-//     1 |      |   6 |
-//     2 |      |   6 |
-//     3 |    1 |   7 |   7
-//     3 |    2 |   7 |   7
-//     4 |    1 |   7 |   7
-//     4 |    2 |   7 |   7
-//       |    3 |     |   8
-//       |    4 |     |   8
-//     5 |      |   9 |
-//       |    5 |     |  10
-// (10 rows)
-
-
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a       join b using (v);
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a inner join b using (v);
-//  a.id | b.id | a.v | b.v
-// ------+------+-----+-----
-//     3 |    1 |   7 |   7
-//     3 |    2 |   7 |   7
-//     4 |    1 |   7 |   7
-//     4 |    2 |   7 |   7
-// (4 rows)
-
-
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a cross join b;
-//  a.id | b.id | a.v | b.v
-// ------+------+-----+-----
-//     1 |    1 |   6 |   7
-//     1 |    2 |   6 |   7
-//     1 |    3 |   6 |   8
-//     1 |    4 |   6 |   8
-//     1 |    5 |   6 |  10
-//     2 |    1 |   6 |   7
-//     2 |    2 |   6 |   7
-//     2 |    3 |   6 |   8
-//     2 |    4 |   6 |   8
-//     2 |    5 |   6 |  10
-//     3 |    1 |   7 |   7
-//     3 |    2 |   7 |   7
-//     3 |    3 |   7 |   8
-//     3 |    4 |   7 |   8
-//     3 |    5 |   7 |  10
-//     4 |    1 |   7 |   7
-//     4 |    2 |   7 |   7
-//     4 |    3 |   7 |   8
-//     4 |    4 |   7 |   8
-//     4 |    5 |   7 |  10
-//     5 |    1 |   9 |   7
-//     5 |    2 |   9 |   7
-//     5 |    3 |   9 |   8
-//     5 |    4 |   9 |   8
-//     5 |    5 |   9 |  10
-// (25 rows)
-
-
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a left       join b using (v) where b.v is null;
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a left outer join b using (v) where b.v is null;
-//  a.id | b.id | a.v | b.v
-// ------+------+-----+-----
-//     1 |      |   6 |
-//     2 |      |   6 |
-//     5 |      |   9 |
-// (3 rows)
-
-
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a right       join b using (v) where true;
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a right outer join b using (v) where a.v is null;
-//  a.id | b.id | a.v | b.v
-// ------+------+-----+-----
-//       |    3 |     |   8
-//       |    4 |     |   8
-//       |    5 |     |  10
-// (3 rows)
-
-
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a full       join b using (v) where a.v is null or b.v is null;
-// select a.id as "a.id", b.id as "b.id", a.v as "a.v", b.v as "b.v" from a full outer join b using (v) where a.v is null or b.v is null;
-//  a.id | b.id | a.v | b.v
-// ------+------+-----+-----
-//     1 |      |   6 |
-//     2 |      |   6 |
-//       |    3 |     |   8
-//       |    4 |     |   8
-//     5 |      |   9 |
-//       |    5 |     |  10
-// (6 rows)
