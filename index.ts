@@ -329,7 +329,7 @@ function castToBBA<L, R>(lr: [unknown, unknown]): asserts lr is BBA<L, R> {
 }
 
 function * getAllCombinationsByEulerDiagramParts<
-  Detailing extends DetailingModifier,
+  const Detailing extends DetailingModifier,
   const EulerDiagramParts extends EulerDiagramPartsCombinations,
   L,
   R,
@@ -338,7 +338,7 @@ function * getAllCombinationsByEulerDiagramParts<
   left: Set<L>,
   right: Set<R>,
   eulerDiagramParts: EulerDiagramParts,
-  detailingModifier: DetailingModifier = 'A'
+  detailingModifier: Detailing = 'A' as Detailing
 ): Generator<ReturnType> {
   const bits = parseInt(eulerDiagramParts, 2);
 
@@ -370,7 +370,12 @@ const generator = getAllCombinationsByEulerDiagramParts(
 )
 
 
-for (const tuple of generator) {
+for (const tuple of getAllCombinationsByEulerDiagramParts(
+  new Set(['12']),
+  new Set([12]),
+  '111',
+  'C'
+)) {
 
 }
 
