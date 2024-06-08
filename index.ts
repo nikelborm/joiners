@@ -1,4 +1,4 @@
-import { Equals, assert } from 'tsafe';
+import { Equals, assert, is } from 'tsafe';
 
 const _ = Symbol('emptiness');
 type _ = typeof _;
@@ -240,12 +240,17 @@ type SelectJoinedTuplesAcceptUnion<
 
 
 
-type Joiner<L, R, EulerDiagramParts extends EulerDiagramPartsCombinations> =
+type Joiner<
+  L,
+  R,
+  EulerDiagramParts extends EulerDiagramPartsCombinations,
+  Detailing extends DetailingModifier,
+> =
   TupleStructureCodeBy<EulerDiagramParts> extends TupleStructureCode
     ? Merge<SelectJoinedTuplesAcceptUnion<
       L,
       R,
-      `${TupleStructureCodeBy<EulerDiagramParts>}E`
+      `${TupleStructureCodeBy<EulerDiagramParts>}${Detailing}`
     >>
     : ForbiddenLiteralUnion<'EulerDiagramParts', 'Joiner'>
 ;
@@ -271,13 +276,13 @@ assert<Equals<FullJoin<A, B>,
 
 
 
-type LeftExclusiveJoin <L, R> = Joiner<L, R, '100'>;
-type InnerJoin         <L, R> = Joiner<L, R, '010'>;
-type RightExclusiveJoin<L, R> = Joiner<L, R, '001'>;
-type LeftJoin          <L, R> = Joiner<L, R, '110'>;
-type RightJoin         <L, R> = Joiner<L, R, '011'>;
-type FullJoin          <L, R> = Joiner<L, R, '111'>;
-type FullExclusiveJoin <L, R> = Joiner<L, R, '101'>;
+type LeftExclusiveJoin <L, R> = Joiner<L, R, '100', 'E'>;
+type InnerJoin         <L, R> = Joiner<L, R, '010', 'E'>;
+type RightExclusiveJoin<L, R> = Joiner<L, R, '001', 'E'>;
+type LeftJoin          <L, R> = Joiner<L, R, '110', 'E'>;
+type RightJoin         <L, R> = Joiner<L, R, '011', 'E'>;
+type FullJoin          <L, R> = Joiner<L, R, '111', 'E'>;
+type FullExclusiveJoin <L, R> = Joiner<L, R, '101', 'E'>;
 type LeftOuterJoin<L, R> = LeftJoin<L, R>;
 type RightOuterJoin<L, R> = RightJoin<L, R>;
 type FullOuterJoin<L, R> = FullJoin<L, R>;
@@ -327,36 +332,47 @@ function * getAllCombinationsByEulerDiagramParts<
   Detailing extends DetailingModifier,
   const EulerDiagramParts extends EulerDiagramPartsCombinations,
   L,
-  R
+  R,
+  ReturnType = Joiner<L, R, EulerDiagramParts, Detailing>
 >(
   left: Set<L>,
   right: Set<R>,
-  eulerDiagramParts: EulerDiagramParts
-) {
+  eulerDiagramParts: EulerDiagramParts,
+  detailingModifier: DetailingModifier = 'A'
+): Generator<ReturnType> {
   const bits = parseInt(eulerDiagramParts, 2);
 
   if(bits & 0b100) {
     for (const l of left) {
-      yield [l, _] satisfies LNA<L, R>;
+      yield ([l, _] satisfies LNA<L, R>) as ReturnType;
     }
   }
 
   if(bits & 0b001) {
     for (const r of right) {
-      yield [_, r] satisfies NRA<L, R>;
+      yield ([_, r] satisfies NRA<L, R>) as ReturnType;
     }
   }
 
   if(bits & 0b010) {
     for (const l of left) {
       for (const r of right) {
-        yield [l, r] satisfies LRA<L, R>;
+        yield ([l, r] satisfies LRA<L, R>) as ReturnType;
       }
     }
   }
 }
 
+const generator = getAllCombinationsByEulerDiagramParts(
+  new Set(['12']),
+  new Set([12]),
+  '101'
+)
 
+
+for (const tuple of generator) {
+
+}
 
 
 
