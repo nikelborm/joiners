@@ -1,4 +1,5 @@
 import { Equals, assert, is } from 'tsafe';
+import {} from 'node:test'
 
 const _ = Symbol('emptiness');
 type _ = typeof _;

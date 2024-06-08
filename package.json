@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/node": "^20.14.2",
     "tsafe": "^1.6.6",
     "tsx": "^4.13.2",
     "typescript": "^5.4.5"
