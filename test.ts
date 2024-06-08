@@ -69,7 +69,7 @@ const join = <L,R>(left: Iterable<L>, right: Iterable<R>, joinType: humanReadabl
   return new Set(joinGen(
     left,
     right,
-    compare,
+    joinType === 'cross join' ? () => true: compare,
     e => e,
     humanReadableJoinNameToEulerDiagramParts[joinType],
     'A'

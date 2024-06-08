@@ -57,19 +57,11 @@ const right = new Set([3, 4, 5, 6]);
 //   eulerDiagramParts: EulerDiagramParts,
 //   detailingModifier: Detailing = 'A' as Detailing
 // ): Generator<ReturnedType> {
-//   const bits = parseInt(eulerDiagramParts, 2);
+  // const bits = parseInt(eulerDiagramParts, 2);
 
-//   if(bits & 0b100) {
-//     for (const l of left) {
-//       yield ([l, _] satisfies LNA<L, R>) as ReturnedType;
-//     }
-//   }
 
-//   if(bits & 0b001) {
-//     for (const r of right) {
-//       yield ([_, r] satisfies NRA<L, R>) as ReturnedType;
-//     }
-//   }
+
+
 
 //   if(bits & 0b010) {
 //     for (const l of left) {
@@ -108,58 +100,42 @@ export function * joinGen<
   eulerDiagramParts: EulerDiagramParts,
   detailingModifier: Detailing = 'A' as Detailing
 ) {
-  if(eulerDiagramParts === '110') {
-    for (const l of left) {
-      let hadMatches = false;
-      for (const r of right) {
-        const tuple = [l, r] satisfies LRA<L, R>;
-        if(compare(tuple)) {
-          hadMatches = true;
-          yield merge((tuple satisfies LRA<L, R>) as TupleType);
-        }
-      }
-      if(!hadMatches)
-        yield merge(([l, _] satisfies LNA<L, R>) as TupleType);
-    }
-  }
-  if (eulerDiagramParts === '011') {
-    yield * joinGen(
-      right,
-      left,
-      (reversedTuple) => compare([reversedTuple[1], reversedTuple[0]]),
-      (reversedTuple) => merge([reversedTuple[1], reversedTuple[0]] as TupleType),
-      '110',
-      detailingModifier
-    )
-  }
-  if (eulerDiagramParts === '111') {
-    const unmatchedRightPointers = new Set<R>(right);
+  const bits = parseInt(eulerDiagramParts, 2);
+  const ref = {} as { unmatchedRightIndexes: Set<number> };
 
-    for (const l of left) {
-      let hadMatches = false;
+  if(bits & 0b001)
+    ref.unmatchedRightIndexes = new Set<number>(
+      Array.from(right, (e, i) => i)
+    );
 
-      for (const r of right) {
-        const tuple = [l, r] satisfies LRA<L, R>;
-        if(compare(tuple)) {
-          hadMatches = true;
-          unmatchedRightPointers.delete(r);
-          yield merge((tuple satisfies LRA<L, R>) as TupleType);
-        }
-      }
+  for (const l of left) {
+    let didLeftEntryMatchedRightAtLeastOnce = false;
+    let rIndex = -1;
 
-      if(!hadMatches)
-        yield merge(([l, _] satisfies LNA<L, R>) as TupleType);
+    for (const r of right) {
+      const tuple = [l, r] satisfies LRA<L, R>;
+      rIndex++;
+      if (!compare(tuple)) continue;
+      didLeftEntryMatchedRightAtLeastOnce = true;
+
+      if(bits & 0b001)
+        ref.unmatchedRightIndexes.delete(rIndex);
+
+      if(bits & 0b010)
+        yield merge(tuple as TupleType);
     }
 
-    for (const r of unmatchedRightPointers) {
-      yield merge(([_, r] satisfies NRA<L, R>) as TupleType);
+    if(!didLeftEntryMatchedRightAtLeastOnce && !!(bits & 0b100))
+      yield merge(([l, _] satisfies LNA<L, R>) as TupleType);
+  }
+
+  if(bits & 0b001) {
+    let rIndex = 0;
+
+    for (const r of right) {
+      if(ref.unmatchedRightIndexes.has(rIndex))
+        yield merge(([_, r] satisfies NRA<L, R>) as TupleType);
+      rIndex++;
     }
   }
 }
-
-console.log('test')
-for (const i of joinGen(left, right, e => e[0] === e[1], e => e, '111', 'A' )) {
-  console.log(i)
-}
-// 1 2 2
-// 2 2 3

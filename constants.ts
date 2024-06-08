@@ -1,1 +1,1 @@
-export const _ = Symbol('emptiness');
+export const _ = Symbol('_');
