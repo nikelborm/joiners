@@ -3,6 +3,7 @@ import type { _ } from './constants';
 export type _ = typeof _;
 
 export type Merge<T> = { [P in keyof T]: T[P] } & {};
+export type UnSet<T> = T extends Set<infer U> ? U : never;
 
 // it's intentionally [Flags] extends ['___'] so that if union of flags
 // is passed, generic won't ignore all elements except the first element of the
@@ -249,8 +250,6 @@ export type Joiner<
     >>
     : ForbiddenLiteralUnion<'EulerDiagramParts', 'Joiner'>
 ;
-
-
 
 
 
