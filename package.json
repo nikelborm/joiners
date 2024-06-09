@@ -13,6 +13,7 @@
     "@types/node": "^20.14.2",
     "tsafe": "^1.6.6",
     "tsx": "^4.13.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "@total-typescript/ts-reset": "^0.5.1"
   }
 }

@@ -5,7 +5,7 @@ export type _ = typeof _;
 export type Merge<T> = { [P in keyof T]: T[P] } & {};
 export type UnSet<T> = T extends Set<infer U> ? U : never;
 
-// it's intentionally [Flags] extends ['___'] so that if union of flags
+// it's intentionally [Something] extends ['___'] so that if union of Something
 // is passed, generic won't ignore all elements except the first element of the
 // union. Generic will reject the whole union and throw error
 export type ForbiddenLiteralUnion<

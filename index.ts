@@ -1,3 +1,4 @@
+import "@total-typescript/ts-reset";
 import { _ } from './constants';
 import type {
   DetailingModifier,
@@ -7,17 +8,19 @@ import type {
 } from './types';
 
 export function * joinGen<
-  const Detailing extends DetailingModifier,
   const EulerDiagramParts extends EulerDiagramPartsCombinations,
   L,
   R,
-  TupleType = Joiner<L, R, EulerDiagramParts, Detailing>
+  MergedResult,
+  const Detailing extends DetailingModifier = 'A',
+  TupleType = Joiner<L, R, EulerDiagramParts, Detailing>,
 >(
   left: Iterable<L>,
   right: Iterable<R>,
   passesJoinCondition: (tuple: LRA<L, R>) => boolean,
-  merge: (tuple: TupleType) => any,
+  merge: (tuple: TupleType) => MergedResult,
   eulerDiagramParts: EulerDiagramParts,
+  // used to infer param for type system. Do not remove
   detailingModifier: Detailing = 'A' as Detailing
 ) {
   const bits = parseInt(eulerDiagramParts, 2);

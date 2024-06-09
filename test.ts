@@ -2,10 +2,25 @@ import test, { describe } from 'node:test';
 import { deepStrictEqual } from 'node:assert/strict';
 import { joinGen } from '.';
 import { _ } from './constants';
-import { LNA, LRA, NRA } from './types';
+import { BBA, LNA, LRA, NRA } from './types';
 
+const capitalize = <T extends string>(s: T) =>
+  (s[0].toUpperCase() + s.slice(1)) as Capitalize<typeof s>;
 
-const humanReadableJoinNameToEulerDiagramParts = {
+function invert(x: number, significant = 0) {
+  let test = x;
+
+  while (test > 1) {
+    test = test >> 1;
+    significant = (significant << 1) | 1;
+  }
+
+  return (~x) & significant;
+}
+
+console.log(invert(5));  // 2 (010 in binary)
+
+const joinTypeToEulerDiagramParts = {
   'left outer join'       : '110',
   'right outer join'      : '011',
   'full outer join'       : '111',
@@ -16,101 +31,122 @@ const humanReadableJoinNameToEulerDiagramParts = {
   'full outer anti join'  : '101',
 } as const;
 
-type humanReadableJoinNames = keyof typeof humanReadableJoinNameToEulerDiagramParts;
+type humanReadableJoinNames = keyof typeof joinTypeToEulerDiagramParts;
 
+const joinsToReturnAllAndOnlyLNAs = new Set<humanReadableJoinNames>([
+  'left outer join',
+  'full outer join',
+  'left outer anti join',
+  'full outer anti join'
+] as const);
 
+const joinsToReturnAllAndOnlyNRAs = new Set<humanReadableJoinNames>([
+  'right outer join',
+  'full outer join',
+  'right outer anti join',
+  'full outer anti join',
+] as const);
 
-const joinNumbers = (left: Array<number>, right: Array<number>, joinType: humanReadableJoinNames) => {
-  return join( left, right, joinType, ([l, r]) => l === r);
-}
-
-const join = <L,R>(left: Iterable<L>, right: Iterable<R>, joinType: humanReadableJoinNames, compare: (tuple: LRA<L, R>) => boolean,) => {
+const join = <L,R>(
+  left: Iterable<L>,
+  right: Iterable<R>,
+  joinType: humanReadableJoinNames,
+  passesJoinCondition: (tuple: LRA<L, R>) => boolean,
+) => {
   return new Set(joinGen(
     left,
     right,
-    joinType === 'cross join' ? () => true: compare,
+    joinType === 'cross join' ? () => true : passesJoinCondition,
     e => e,
-    humanReadableJoinNameToEulerDiagramParts[joinType],
+    joinTypeToEulerDiagramParts[joinType],
     'A'
   ));
 }
 
-const prepareTestOfOneJoin = <L, R>(
-  datasets: {
-    FilledA: Iterable<L>,
-    FilledB: Iterable<R>,
-  },
-  compare: (tuple: LRA<L, R>) => boolean,
-) => (
-  aKind: 'FilledA' | 'EmptyA',
-  bKind: 'FilledB' | 'EmptyB',
-  joinType: string,
-  expected: unknown,
-) => {
-  test(`${aKind} join ${bKind}`, () => {
-    deepStrictEqual(
-      join(
-        aKind === 'EmptyA' ? [] : datasets[aKind],
-        bKind === 'EmptyB' ? [] : datasets[bKind],
-        joinType as humanReadableJoinNames,
-        compare
-      ),
-      expected
-    );
-  })
-}
-
-const testSuiteForAllJoins = <L, R>(
+const testSuiteForAllJoins = <L, R, MergeResult>(
   suiteName: string,
+  passesJoinCondition: (tuple: LRA<L, R>) => boolean,
+  merge: (tuple: BBA<L, R>) => MergeResult,
   datasetGenerator: () => {
-    FilledA: Iterable<L>,
-    FilledB: Iterable<R>,
+    a: Iterable<L>,
+    b: Iterable<R>,
   },
-  compare: (tuple: LRA<L, R>) => boolean,
+  joinResultForBothFilledDatasets: {
+    [K in humanReadableJoinNames]: Iterable<MergeResult>
+  }
 ) => {
+  const datasets = datasetGenerator();
 
+  describe(suiteName, () => {
+    for (const joinType of Object.keys(joinTypeToEulerDiagramParts) as Iterable<humanReadableJoinNames>) {
+      describe(joinType, () => {
+        type choice = 'filled' | 'empty';
+        const testOneJoin = (
+          { a, b, expected }:
+          { a: choice, b: choice, expected: unknown }
+        ) => test(`${capitalize(a)} A join ${b} B`, () => deepStrictEqual(
+          join(
+            a === 'empty' ? [] : datasets.a,
+            b === 'empty' ? [] : datasets.b,
+            joinType,
+            passesJoinCondition
+          ),
+          expected
+        ))
+        testOneJoin({
+          a: 'empty',
+          b: 'empty',
+          expected: new Set()
+        });
+        testOneJoin({
+          a: 'filled',
+          b: 'empty',
+          expected: joinsToReturnAllAndOnlyLNAs.has(joinType)
+            ? new Set([...datasets.a].map(e => [e, _] as LNA<L, R>))
+            : new Set()
+        });
+        testOneJoin({
+          a: 'empty',
+          b: 'filled',
+          expected: joinsToReturnAllAndOnlyNRAs.has(joinType)
+            ? new Set([...datasets.b].map(e => [_, e] as NRA<L, R>))
+            : new Set()
+        });
+        testOneJoin({
+          a: 'filled',
+          b: 'filled',
+          expected: new Set(joinResultForBothFilledDatasets[joinType])
+        });
+      })
+    }
+  });
 }
 
-describe('Tests for mock db rows' , () => {
-  const brandA = Symbol('A');
-  const brandB = Symbol('B');
+const brandA = Symbol('A');
+const brandB = Symbol('B');
 
-  type brandA = typeof brandA;
-  type brandB = typeof brandB;
-
-  type A = { brand: brandA; id: number; v: number; };
-  type B = { brand: brandB; id: number; v: number; };
-
-  const FilledA = new Set<A>([
-    { brand: brandA, id: 1, v: 6 },
-    { brand: brandA, id: 2, v: 6 },
-    { brand: brandA, id: 3, v: 7 },
-    { brand: brandA, id: 4, v: 7 },
-    { brand: brandA, id: 5, v: 9 }
-  ]);
-
-  const FilledB = new Set<B>([
-    { brand: brandB, id: 1, v: 7  },
-    { brand: brandB, id: 2, v: 7  },
-    { brand: brandB, id: 3, v: 8  },
-    { brand: brandB, id: 4, v: 8  },
-    { brand: brandB, id: 5, v: 10 }
-  ]);
-
-  const LNAsFromFilledA = new Set([...FilledA].map(e => [e, _] as LNA<A, B>));
-  const NRAsFromFilledB = new Set([...FilledB].map(e => [_, e] as NRA<A, B>));
-
-
-  const testJoin = prepareTestOfOneJoin(
-    { FilledA, FilledB },
-    ([l, r]) => l.v === r.v
-  );
-
-  describe('left outer join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, LNAsFromFilledA)
-    testJoin('EmptyA',  'FilledB', t.name, new Set())
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+testSuiteForAllJoins(
+  'Tests for mock db rows',
+  ([l, r]) => l.v === r.v,
+  e => e,
+  () => ({
+    a: new Set<{ brand: typeof brandA; id: number; v: number; }>([
+      { brand: brandA, id: 1, v: 6 },
+      { brand: brandA, id: 2, v: 6 },
+      { brand: brandA, id: 3, v: 7 },
+      { brand: brandA, id: 4, v: 7 },
+      { brand: brandA, id: 5, v: 9 }
+    ]),
+    b: new Set<{ brand: typeof brandB; id: number; v: number; }>([
+      { brand: brandB, id: 1, v: 7  },
+      { brand: brandB, id: 2, v: 7  },
+      { brand: brandB, id: 3, v: 8  },
+      { brand: brandB, id: 4, v: 8  },
+      { brand: brandB, id: 5, v: 10 }
+    ]),
+  }),
+  {
+    "left outer join": [
       [ { brand: brandA, id: 1, v: 6 }, _                              ],
       [ { brand: brandA, id: 2, v: 6 }, _                              ],
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 1, v: 7 } ],
@@ -118,13 +154,8 @@ describe('Tests for mock db rows' , () => {
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 1, v: 7 } ],
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 2, v: 7 } ],
       [ { brand: brandA, id: 5, v: 9 }, _                              ],
-    ]))
-  })
-  describe('right outer join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, new Set())
-    testJoin('EmptyA',  'FilledB', t.name, NRAsFromFilledB)
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ] as const,
+    'right outer join': [
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 1, v:  7 } ],
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 1, v:  7 } ],
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 2, v:  7 } ],
@@ -132,13 +163,8 @@ describe('Tests for mock db rows' , () => {
       [ _                             , { brand: brandB, id: 3, v:  8 } ],
       [ _                             , { brand: brandB, id: 4, v:  8 } ],
       [ _                             , { brand: brandB, id: 5, v: 10 } ],
-    ]))
-  })
-  describe('full outer join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, LNAsFromFilledA)
-    testJoin('EmptyA',  'FilledB', t.name, NRAsFromFilledB)
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ] as const,
+    'full outer join': [
       [ { brand: brandA, id: 1, v: 6 }, _                               ],
       [ { brand: brandA, id: 2, v: 6 }, _                               ],
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 1, v: 7  } ],
@@ -149,24 +175,14 @@ describe('Tests for mock db rows' , () => {
       [ _                             , { brand: brandB, id: 4, v: 8  } ],
       [ { brand: brandA, id: 5, v: 9 }, _                               ],
       [ _                             , { brand: brandB, id: 5, v: 10 } ],
-    ]))
-  })
-  describe('inner join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, new Set())
-    testJoin('EmptyA',  'FilledB', t.name, new Set())
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ],
+    'inner join': [
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 1, v: 7 } ],
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 2, v: 7 } ],
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 1, v: 7 } ],
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 2, v: 7 } ],
-    ]))
-  })
-  describe('cross join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, new Set())
-    testJoin('EmptyA',  'FilledB', t.name, new Set())
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ],
+    'cross join': [
       [ { brand: brandA, id: 1, v: 6 }, { brand: brandB, id: 1, v:  7 } ],
       [ { brand: brandA, id: 1, v: 6 }, { brand: brandB, id: 2, v:  7 } ],
       [ { brand: brandA, id: 1, v: 6 }, { brand: brandB, id: 3, v:  8 } ],
@@ -192,64 +208,39 @@ describe('Tests for mock db rows' , () => {
       [ { brand: brandA, id: 5, v: 9 }, { brand: brandB, id: 3, v:  8 } ],
       [ { brand: brandA, id: 5, v: 9 }, { brand: brandB, id: 4, v:  8 } ],
       [ { brand: brandA, id: 5, v: 9 }, { brand: brandB, id: 5, v: 10 } ],
-    ]))
-  })
-  describe('left outer anti join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, LNAsFromFilledA)
-    testJoin('EmptyA',  'FilledB', t.name, new Set())
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ],
+    'left outer anti join': [
       [ { brand: brandA, id: 1, v: 6 }, _ ],
       [ { brand: brandA, id: 2, v: 6 }, _ ],
       [ { brand: brandA, id: 5, v: 9 }, _ ],
-    ]))
-  })
-  describe('right outer anti join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, new Set())
-    testJoin('EmptyA',  'FilledB', t.name, NRAsFromFilledB)
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ],
+    'right outer anti join': [
       [_, { brand: brandB, id: 3, v:  8 }],
       [_, { brand: brandB, id: 4, v:  8 }],
       [_, { brand: brandB, id: 5, v: 10 }],
-    ]))
-  })
-  describe('full outer anti join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, LNAsFromFilledA)
-    testJoin('EmptyA',  'FilledB', t.name, NRAsFromFilledB)
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ],
+    'full outer anti join': [
       [ { brand: brandA, id: 1, v: 6 }, _                               ],
       [ { brand: brandA, id: 2, v: 6 }, _                               ],
       [ _                             , { brand: brandB, id: 3, v: 8  } ],
       [ _                             , { brand: brandB, id: 4, v: 8  } ],
       [ { brand: brandA, id: 5, v: 9 }, _                               ],
       [ _                             , { brand: brandB, id: 5, v: 10 } ],
-    ]))
-  })
-})
-
-describe('Tests for 2 intersecting arrays of numbers' , () => {
-  type A = number;
-  type B = number;
-
-  const FilledA = [6, 6, 7, 7, 9];
-  const FilledB = [7, 7, 8, 8, 10];
-
-  const LNAsFromFilledA = new Set([...FilledA].map(e => [e, _] as LNA<A, B>));
-  const NRAsFromFilledB = new Set([...FilledB].map(e => [_, e] as NRA<A, B>));
+    ]
+  },
+)
 
 
-  const testJoin = prepareTestOfOneJoin(
-    { FilledA, FilledB },
-    ([l, r]) => l === r
-  );
-
-  describe('left outer join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, LNAsFromFilledA)
-    testJoin('EmptyA',  'FilledB', t.name, new Set())
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+testSuiteForAllJoins(
+  'Tests for 2 intersecting arrays of numbers',
+  ([l, r]) => l === r,
+  e => e,
+  () => ({
+    a: [6, 6, 7, 7, 9],
+    b: [7, 7, 8, 8, 10],
+  }),
+  {
+    "left outer join": [
       [ 6, _ ],
       [ 6, _ ],
       [ 7, 7 ],
@@ -257,13 +248,8 @@ describe('Tests for 2 intersecting arrays of numbers' , () => {
       [ 7, 7 ],
       [ 7, 7 ],
       [ 9, _ ],
-    ]))
-  })
-  describe('right outer join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, new Set())
-    testJoin('EmptyA',  'FilledB', t.name, NRAsFromFilledB)
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ] as const,
+    'right outer join': [
       [ 7, 7 ],
       [ 7, 7 ],
       [ 7, 7 ],
@@ -271,13 +257,8 @@ describe('Tests for 2 intersecting arrays of numbers' , () => {
       [ _, 8 ],
       [ _, 8 ],
       [ _, 10 ],
-    ]))
-  })
-  describe('full outer join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, LNAsFromFilledA)
-    testJoin('EmptyA',  'FilledB', t.name, NRAsFromFilledB)
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ] as const,
+    'full outer join': [
       [ 6, _ ],
       [ 6, _ ],
       [ 7, 7 ],
@@ -288,24 +269,14 @@ describe('Tests for 2 intersecting arrays of numbers' , () => {
       [ _, 8 ],
       [ 9, _ ],
       [ _, 10 ],
-    ]))
-  })
-  describe('inner join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, new Set())
-    testJoin('EmptyA',  'FilledB', t.name, new Set())
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ],
+    'inner join': [
       [ 7, 7 ],
       [ 7, 7 ],
       [ 7, 7 ],
       [ 7, 7 ],
-    ]))
-  })
-  describe('cross join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, new Set())
-    testJoin('EmptyA',  'FilledB', t.name, new Set())
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ],
+    'cross join': [
       [ 6, 7 ],
       [ 6, 7 ],
       [ 6, 8 ],
@@ -331,39 +302,24 @@ describe('Tests for 2 intersecting arrays of numbers' , () => {
       [ 9, 8 ],
       [ 9, 8 ],
       [ 9, 10 ],
-    ]))
-  })
-  describe('left outer anti join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, LNAsFromFilledA)
-    testJoin('EmptyA',  'FilledB', t.name, new Set())
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ],
+    'left outer anti join': [
       [ 6, _ ],
       [ 6, _ ],
       [ 9, _ ],
-    ]))
-  })
-  describe('right outer anti join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, new Set())
-    testJoin('EmptyA',  'FilledB', t.name, NRAsFromFilledB)
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ],
+    'right outer anti join': [
       [_, 8],
       [_, 8],
       [_, 10],
-    ]))
-  })
-  describe('full outer anti join', (t) => {
-    testJoin('EmptyA',  'EmptyB',  t.name, new Set())
-    testJoin('FilledA', 'EmptyB',  t.name, LNAsFromFilledA)
-    testJoin('EmptyA',  'FilledB', t.name, NRAsFromFilledB)
-    testJoin('FilledA', 'FilledB', t.name, new Set([
+    ],
+    'full outer anti join': [
       [ 6, _ ],
       [ 6, _ ],
       [ _, 8 ],
       [ _, 8 ],
       [ 9, _ ],
       [ _, 10 ],
-    ]))
-  })
-})
+    ]
+  },
+)
