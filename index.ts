@@ -1,47 +1,10 @@
 import { _ } from './constants';
 import type {
-  BBA,
   DetailingModifier,
   EulerDiagramPartsCombinations,
   Joiner,
-  LNA,
-  LRA,
-  NRA,
-  toV,
-  to_
+  LRA
 } from './types';
-
-
-
-
-// function isEmpty<T>(v: T): v is to_<T> {
-//   return v === _;
-// }
-
-// function isNotEmpty<T>(v: T): v is toV<T> {
-//   return v !== _;
-// }
-
-
-// function castToBBA<L, R>(lr: [unknown, unknown]): asserts lr is BBA<L, R> {
-//   // TODO: check l is L and r is R
-
-//   const [l, r] = lr;
-
-//   if(
-//     (isEmpty   (l) && isEmpty   (r)) ||
-//     (isEmpty   (l) && isNotEmpty(r)) ||
-//     (isNotEmpty(l) && isEmpty   (r)) ||
-//     (isNotEmpty(l) && isNotEmpty(r))
-//   ) return;
-
-//   throw new Error(`What the actual fuck??? lr is ${lr}`);
-// }
-
-
-
-
-
 
 export function * joinGen<
   const Detailing extends DetailingModifier,
