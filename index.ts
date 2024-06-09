@@ -61,15 +61,15 @@ export function * joinGen<
   const shouldAddLeftExclusivePart  = bits & 0b100;
   const shouldAddInnerPart          = bits & 0b010;
   const shouldAddRightExclusivePart = bits & 0b001;
-  const ref = {} as { unmatchedRightIndexes: Set<number> };
+  let ref = {} as { unmatchedRightIndexes: Set<number> };
 
   if(shouldAddRightExclusivePart)
-    ref.unmatchedRightIndexes = new Set<number>(
+    ref.unmatchedRightIndexes = new Set(
       Array.from(right, (e, i) => i)
     );
 
   for (const l of left) {
-    let currentLeftEntryNeverPassedJoinCondition = true;
+    let lNeverPassedJoinCondition = true;
     let rIndex = -1;
     // Starts with -1 because is being incremented before used
 
@@ -77,7 +77,7 @@ export function * joinGen<
       const tuple = [l, r] satisfies LRA<L, R>;
       rIndex++;
       if (!passesJoinCondition(tuple)) continue;
-      currentLeftEntryNeverPassedJoinCondition = false;
+      lNeverPassedJoinCondition = false;
 
       if(shouldAddRightExclusivePart)
         ref.unmatchedRightIndexes.delete(rIndex);
@@ -87,7 +87,7 @@ export function * joinGen<
     }
 
     if(
-      currentLeftEntryNeverPassedJoinCondition
+      lNeverPassedJoinCondition
       && shouldAddLeftExclusivePart
     )
       yield merge([l, _] as TupleType);
