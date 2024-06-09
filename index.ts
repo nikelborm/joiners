@@ -52,47 +52,53 @@ export function * joinGen<
 >(
   left: Iterable<L>,
   right: Iterable<R>,
-  compare: (tuple: LRA<L, R>) => boolean,
+  passesJoinCondition: (tuple: LRA<L, R>) => boolean,
   merge: (tuple: TupleType) => any,
   eulerDiagramParts: EulerDiagramParts,
   detailingModifier: Detailing = 'A' as Detailing
 ) {
   const bits = parseInt(eulerDiagramParts, 2);
+  const shouldAddLeftExclusivePart  = bits & 0b100;
+  const shouldAddInnerPart          = bits & 0b010;
+  const shouldAddRightExclusivePart = bits & 0b001;
   const ref = {} as { unmatchedRightIndexes: Set<number> };
 
-  if(bits & 0b001)
+  if(shouldAddRightExclusivePart)
     ref.unmatchedRightIndexes = new Set<number>(
       Array.from(right, (e, i) => i)
     );
 
   for (const l of left) {
-    let didLeftEntryMatchedRightAtLeastOnce = false;
+    let currentLeftEntryNeverPassedJoinCondition = true;
     let rIndex = -1;
+    // Starts with -1 because is being incremented before used
 
     for (const r of right) {
       const tuple = [l, r] satisfies LRA<L, R>;
       rIndex++;
-      if (!compare(tuple)) continue;
-      didLeftEntryMatchedRightAtLeastOnce = true;
+      if (!passesJoinCondition(tuple)) continue;
+      currentLeftEntryNeverPassedJoinCondition = false;
 
-      if(bits & 0b001)
+      if(shouldAddRightExclusivePart)
         ref.unmatchedRightIndexes.delete(rIndex);
 
-      if(bits & 0b010)
+      if(shouldAddInnerPart)
         yield merge(tuple as TupleType);
     }
 
-    if(!didLeftEntryMatchedRightAtLeastOnce && !!(bits & 0b100))
-      yield merge(([l, _] satisfies LNA<L, R>) as TupleType);
+    if(
+      currentLeftEntryNeverPassedJoinCondition
+      && shouldAddLeftExclusivePart
+    )
+      yield merge([l, _] as TupleType);
   }
 
-  if(bits & 0b001) {
+  if(shouldAddRightExclusivePart) {
     let rIndex = 0;
 
     for (const r of right) {
-      if(ref.unmatchedRightIndexes.has(rIndex))
-        yield merge(([_, r] satisfies NRA<L, R>) as TupleType);
-      rIndex++;
+      if(ref.unmatchedRightIndexes.has(rIndex++))
+        yield merge([_, r] as TupleType);
     }
   }
 }
