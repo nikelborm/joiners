@@ -22,21 +22,18 @@ import type {
   JoinType
 } from './types';
 
-type GetJoinTypesByEulerDiagramMask<
-  EulerDiagramPartsMask
-> = Merge<Extract<
-  {
-    [Key in JoinType]: [Key, typeof joinTypeToEulerDiagramParts[Key]];
-  }[JoinType],
-  [JoinType, EulerDiagramPartsMask]
->>
-
 function getJoinTypesBy<Mask>(
   bitmask: (eulerDiagramParts: EulerDiagramPartsCombinations) => boolean
-): Set<GetJoinTypesByEulerDiagramMask<Mask>[0]> {
+) {
+  type JoinTypes = Merge<Extract<
+    {
+      [Key in JoinType]: [Key, typeof joinTypeToEulerDiagramParts[Key]];
+    }[JoinType],
+    [JoinType, Mask]
+  >>
   return new Set(
     objectEntries(joinTypeToEulerDiagramParts)
-      .filter((e): e is GetJoinTypesByEulerDiagramMask<Mask> => bitmask(e[1]))
+      .filter((e): e is JoinTypes => bitmask(e[1]))
       .map((e) => e[0] as (typeof e)[0])
   )
 }
@@ -71,7 +68,7 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
 
   describe(suiteName, () => {
     for (
-      const joinType of objectKeys(joinTypeToEulerDiagramPartsWithoutAliases)
+      const joinType of objectKeys(joinResultForBothFilledDatasets)
     ) {
       describe(joinType, () => {
         const expectations = {
@@ -85,8 +82,7 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
           'a_filled_b_filled': joinResultForBothFilledDatasets[joinType]
         };
         for (const a of choices)
-          for (const b of choices){
-            if(`a_${a}_b_${b}` !== `a_filled_b_filled`) continue;
+          for (const b of choices)
             test(
               `${capitalize(a)} A join ${b} B`,
               () => {
@@ -101,7 +97,7 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
                   new Set(expectations[`a_${a}_b_${b}` satisfies keyof typeof expectations])
                 )
               }
-            )}
+            )
       })
     }
   });
