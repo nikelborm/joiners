@@ -37,12 +37,13 @@ export function join<
   merge: (tuple: TupleType) => MergedResult,
 ): Generator<TupleType>;
 
-export function * join<
+export function join<
   const InferredJoinType extends JoinType,
   L,
   R,
   MergedResult,
-  EulerDiagramParts extends EulerDiagramPartsCombinations = typeof joinTypeToEulerDiagramParts[InferredJoinType],
+  EulerDiagramParts extends EulerDiagramPartsCombinations
+    = typeof joinTypeToEulerDiagramParts[InferredJoinType],
   const Detailing extends DetailingModifier = 'A',
   TupleType = Joiner<L, R, EulerDiagramParts, Detailing>,
 >(
@@ -58,7 +59,7 @@ export function * join<
   if (joinType !== 'crossJoin' && passesJoinCondition === undefined)
     throw new Error();
 
-  yield * joinGeneratorOnEulerDiagramParts(
+  return joinGeneratorOnEulerDiagramParts(
     left,
     right,
     joinTypeToEulerDiagramParts[joinType],

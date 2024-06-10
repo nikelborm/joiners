@@ -2,7 +2,7 @@ import "@total-typescript/ts-reset";
 import { deepStrictEqual } from 'node:assert/strict';
 import test, { describe } from 'node:test';
 import { capitalize, objectEntries, objectKeys } from 'tsafe';
-import { _, joinTypeToEulerDiagramParts } from './constants';
+import { _, joinTypeToEulerDiagramParts, joinTypeToEulerDiagramPartsWithoutAliases } from './constants';
 import { join } from './index';
 import type {
   BBA,
@@ -61,74 +61,47 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
     b: Iterable<R>,
   },
   joinResultForBothFilledDatasets: Record<
-    | 'leftJoin'
-    | 'rightJoin'
-    | 'fullJoin'
-    | 'innerJoin'
-    | 'crossJoin'
-    | 'leftAntiJoin'
-    | 'rightAntiJoin'
-    | 'fullAntiJoin',
+    keyof typeof joinTypeToEulerDiagramPartsWithoutAliases,
     Iterable<MergeResult>
   >
 ) => {
   const datasets = datasetGenerator();
+  const choices = ['filled', 'empty'] as const;
+  type choices = typeof choices extends ReadonlyArray<infer U> ? U : never;
 
   describe(suiteName, () => {
     for (
-      const joinType of objectKeys(joinTypeToEulerDiagramParts)
+      const joinType of objectKeys(joinTypeToEulerDiagramPartsWithoutAliases)
     ) {
       describe(joinType, () => {
-
-        type choice = 'filled' | 'empty';
-        const testOneJoin = (
-          { a, b, expected }:
-          { a: choice, b: choice, expected: unknown }
-        ) =>
-          test(
-            `${capitalize(a)} A join ${b} B`,
-            () => {
-              const left = a === 'empty' ? [] : datasets.a;
-              const right = b === 'empty' ? [] : datasets.b;
-              deepStrictEqual(
-                new Set(
-                  joinType === 'crossJoin'
-                    ? join(left, right, joinType, merge)
-                    : join(left, right, joinType, merge, passesJoinCondition)
-                ),
-                expected
-              )
-            }
-          )
-
-        testOneJoin({
-          a: 'empty',
-          b: 'empty',
-          expected: new Set()
-        });
-        testOneJoin({
-          a: 'filled',
-          b: 'empty',
-          expected: new Set(
-            joinsReturningAllPossibleAndExclusivelyLNAs.has(joinType)
-              ? [...datasets.a].map(e => [e, _] as LNA<L, R>)
-              : []
-          )
-        });
-        testOneJoin({
-          a: 'empty',
-          b: 'filled',
-          expected: new Set(
-            joinsReturningAllPossibleAndExclusivelyNRAs.has(joinType)
-              ? [...datasets.b].map(e => [_, e] as NRA<L, R>)
-              : []
-          )
-        });
-        testOneJoin({
-          a: 'filled',
-          b: 'filled',
-          expected: new Set(joinResultForBothFilledDatasets[joinType])
-        });
+        const expectations = {
+          'a_empty_b_empty': [],
+          'a_empty_b_filled': joinsReturningAllPossibleAndExclusivelyNRAs.has(joinType)
+            ? [...datasets.b].map(e => merge([_, e] as NRA<L, R>))
+            : [],
+          'a_filled_b_empty': joinsReturningAllPossibleAndExclusivelyLNAs.has(joinType)
+            ? [...datasets.a].map(e => merge([e, _] as LNA<L, R>))
+            : [],
+          'a_filled_b_filled': joinResultForBothFilledDatasets[joinType]
+        };
+        for (const a of choices)
+          for (const b of choices){
+            if(`a_${a}_b_${b}` !== `a_filled_b_filled`) continue;
+            test(
+              `${capitalize(a)} A join ${b} B`,
+              () => {
+                const left = a === 'empty' ? [] : datasets.a;
+                const right = b === 'empty' ? [] : datasets.b;
+                deepStrictEqual(
+                  new Set(
+                    joinType === 'crossJoin'
+                      ? join(left, right, joinType, merge)
+                      : join(left, right, joinType, merge, passesJoinCondition)
+                  ),
+                  new Set(expectations[`a_${a}_b_${b}` satisfies keyof typeof expectations])
+                )
+              }
+            )}
       })
     }
   });
