@@ -1,67 +1,38 @@
-import test, { describe } from 'node:test';
 import { deepStrictEqual } from 'node:assert/strict';
-import { joinGen } from '.';
-import { _ } from './constants';
-import { BBA, LNA, LRA, NRA } from './types';
+import test, { describe } from 'node:test';
+import { capitalize, objectEntries } from 'tsafe';
+import { _, joinTypeToEulerDiagramParts } from './constants';
+import { BBA, EulerDiagramPartsCombinations, LNA, LRA, Merge, NRA, humanReadableJoinNames } from './types';
 
-const capitalize = <T extends string>(s: T) =>
-  (s[0].toUpperCase() + s.slice(1)) as Capitalize<typeof s>;
+type GetJoinTypesByEulerDiagramMask<
+  EulerDiagramPartsMask
+> = Merge<Extract<
+  {
+    [Key in humanReadableJoinNames]: [Key, typeof joinTypeToEulerDiagramParts[Key]];
+  }[humanReadableJoinNames],
+  [humanReadableJoinNames, EulerDiagramPartsMask]
+>>
 
-function invert(x: number, significant = 0) {
-  let test = x;
-
-  while (test > 1) {
-    test = test >> 1;
-    significant = (significant << 1) | 1;
-  }
-
-  return (~x) & significant;
+function getJoinTypesBy<Mask>(
+  bitmask: (eulerDiagramParts: EulerDiagramPartsCombinations) => boolean
+): Set<GetJoinTypesByEulerDiagramMask<Mask>[0]> {
+  return new Set(
+    objectEntries(joinTypeToEulerDiagramParts)
+      .filter((e): e is GetJoinTypesByEulerDiagramMask<Mask> => bitmask(e[1]))
+      .map((e) => e[0] as (typeof e)[0])
+  )
 }
 
-console.log(invert(5));  // 2 (010 in binary)
+const joinsReturningAllPossibleAndExclusivelyLNAs =
+  getJoinTypesBy<`1${string}`>(
+    e => e.startsWith('1')
+  );
 
-const joinTypeToEulerDiagramParts = {
-  'left outer join'       : '110',
-  'right outer join'      : '011',
-  'full outer join'       : '111',
-  'inner join'            : '010',
-  'cross join'            : '010',
-  'left outer anti join'  : '100',
-  'right outer anti join' : '001',
-  'full outer anti join'  : '101',
-} as const;
+const joinsReturningAllPossibleAndExclusivelyNRAs =
+  getJoinTypesBy<`${string}1`>(
+    e => e.endsWith('1')
+  );
 
-type humanReadableJoinNames = keyof typeof joinTypeToEulerDiagramParts;
-
-const joinsToReturnAllAndOnlyLNAs = new Set<humanReadableJoinNames>([
-  'left outer join',
-  'full outer join',
-  'left outer anti join',
-  'full outer anti join'
-] as const);
-
-const joinsToReturnAllAndOnlyNRAs = new Set<humanReadableJoinNames>([
-  'right outer join',
-  'full outer join',
-  'right outer anti join',
-  'full outer anti join',
-] as const);
-
-const join = <L,R>(
-  left: Iterable<L>,
-  right: Iterable<R>,
-  joinType: humanReadableJoinNames,
-  passesJoinCondition: (tuple: LRA<L, R>) => boolean,
-) => {
-  return new Set(joinGen(
-    left,
-    right,
-    joinType === 'cross join' ? () => true : passesJoinCondition,
-    e => e,
-    joinTypeToEulerDiagramParts[joinType],
-    'A'
-  ));
-}
 
 const testSuiteForAllJoins = <L, R, MergeResult>(
   suiteName: string,
@@ -101,14 +72,14 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
         testOneJoin({
           a: 'filled',
           b: 'empty',
-          expected: joinsToReturnAllAndOnlyLNAs.has(joinType)
+          expected: joinsReturningAllPossibleAndExclusivelyLNAs.has(joinType)
             ? new Set([...datasets.a].map(e => [e, _] as LNA<L, R>))
             : new Set()
         });
         testOneJoin({
           a: 'empty',
           b: 'filled',
-          expected: joinsToReturnAllAndOnlyNRAs.has(joinType)
+          expected: joinsReturningAllPossibleAndExclusivelyNRAs.has(joinType)
             ? new Set([...datasets.b].map(e => [_, e] as NRA<L, R>))
             : new Set()
         });
@@ -146,7 +117,7 @@ testSuiteForAllJoins(
     ]),
   }),
   {
-    "left outer join": [
+    "leftOuterJoin": [
       [ { brand: brandA, id: 1, v: 6 }, _                              ],
       [ { brand: brandA, id: 2, v: 6 }, _                              ],
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 1, v: 7 } ],
@@ -155,7 +126,7 @@ testSuiteForAllJoins(
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 2, v: 7 } ],
       [ { brand: brandA, id: 5, v: 9 }, _                              ],
     ] as const,
-    'right outer join': [
+    'rightOuterJoin': [
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 1, v:  7 } ],
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 1, v:  7 } ],
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 2, v:  7 } ],
@@ -164,7 +135,7 @@ testSuiteForAllJoins(
       [ _                             , { brand: brandB, id: 4, v:  8 } ],
       [ _                             , { brand: brandB, id: 5, v: 10 } ],
     ] as const,
-    'full outer join': [
+    'fullOuterJoin': [
       [ { brand: brandA, id: 1, v: 6 }, _                               ],
       [ { brand: brandA, id: 2, v: 6 }, _                               ],
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 1, v: 7  } ],
@@ -176,13 +147,13 @@ testSuiteForAllJoins(
       [ { brand: brandA, id: 5, v: 9 }, _                               ],
       [ _                             , { brand: brandB, id: 5, v: 10 } ],
     ],
-    'inner join': [
+    'innerJoin': [
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 1, v: 7 } ],
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 2, v: 7 } ],
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 1, v: 7 } ],
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 2, v: 7 } ],
     ],
-    'cross join': [
+    'crossJoin': [
       [ { brand: brandA, id: 1, v: 6 }, { brand: brandB, id: 1, v:  7 } ],
       [ { brand: brandA, id: 1, v: 6 }, { brand: brandB, id: 2, v:  7 } ],
       [ { brand: brandA, id: 1, v: 6 }, { brand: brandB, id: 3, v:  8 } ],
@@ -209,17 +180,17 @@ testSuiteForAllJoins(
       [ { brand: brandA, id: 5, v: 9 }, { brand: brandB, id: 4, v:  8 } ],
       [ { brand: brandA, id: 5, v: 9 }, { brand: brandB, id: 5, v: 10 } ],
     ],
-    'left outer anti join': [
+    'leftOuterAntiJoin': [
       [ { brand: brandA, id: 1, v: 6 }, _ ],
       [ { brand: brandA, id: 2, v: 6 }, _ ],
       [ { brand: brandA, id: 5, v: 9 }, _ ],
     ],
-    'right outer anti join': [
+    'rightOuterAntiJoin': [
       [_, { brand: brandB, id: 3, v:  8 }],
       [_, { brand: brandB, id: 4, v:  8 }],
       [_, { brand: brandB, id: 5, v: 10 }],
     ],
-    'full outer anti join': [
+    'fullOuterAntiJoin': [
       [ { brand: brandA, id: 1, v: 6 }, _                               ],
       [ { brand: brandA, id: 2, v: 6 }, _                               ],
       [ _                             , { brand: brandB, id: 3, v: 8  } ],
@@ -240,7 +211,7 @@ testSuiteForAllJoins(
     b: [7, 7, 8, 8, 10],
   }),
   {
-    "left outer join": [
+    "leftOuterJoin": [
       [ 6, _ ],
       [ 6, _ ],
       [ 7, 7 ],
@@ -249,7 +220,7 @@ testSuiteForAllJoins(
       [ 7, 7 ],
       [ 9, _ ],
     ] as const,
-    'right outer join': [
+    'rightOuterJoin': [
       [ 7, 7 ],
       [ 7, 7 ],
       [ 7, 7 ],
@@ -258,7 +229,7 @@ testSuiteForAllJoins(
       [ _, 8 ],
       [ _, 10 ],
     ] as const,
-    'full outer join': [
+    'fullOuterJoin': [
       [ 6, _ ],
       [ 6, _ ],
       [ 7, 7 ],
@@ -270,13 +241,13 @@ testSuiteForAllJoins(
       [ 9, _ ],
       [ _, 10 ],
     ],
-    'inner join': [
+    'innerJoin': [
       [ 7, 7 ],
       [ 7, 7 ],
       [ 7, 7 ],
       [ 7, 7 ],
     ],
-    'cross join': [
+    'crossJoin': [
       [ 6, 7 ],
       [ 6, 7 ],
       [ 6, 8 ],
@@ -303,17 +274,17 @@ testSuiteForAllJoins(
       [ 9, 8 ],
       [ 9, 10 ],
     ],
-    'left outer anti join': [
+    'leftOuterAntiJoin': [
       [ 6, _ ],
       [ 6, _ ],
       [ 9, _ ],
     ],
-    'right outer anti join': [
+    'rightOuterAntiJoin': [
       [_, 8],
       [_, 8],
       [_, 10],
     ],
-    'full outer anti join': [
+    'fullOuterAntiJoin': [
       [ 6, _ ],
       [ 6, _ ],
       [ _, 8 ],

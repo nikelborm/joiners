@@ -1,13 +1,30 @@
 import "@total-typescript/ts-reset";
-import { _ } from './constants';
+import { _, joinTypeToEulerDiagramParts } from './constants';
 import type {
   DetailingModifier,
   EulerDiagramPartsCombinations,
   Joiner,
-  LRA
+  LRA,
+  humanReadableJoinNames
 } from './types';
 
-export function * joinGen<
+export function * join<L,R>(
+  left: Iterable<L>,
+  right: Iterable<R>,
+  joinType: humanReadableJoinNames,
+  passesJoinCondition: (tuple: LRA<L, R>) => boolean,
+) {
+  yield * joinGeneratorOnEulerDiagramParts(
+    left,
+    right,
+    joinType === 'crossJoin' ? () => true : passesJoinCondition,
+    e => e,
+    joinTypeToEulerDiagramParts[joinType],
+    'A'
+  );
+}
+
+export function * joinGeneratorOnEulerDiagramParts<
   const EulerDiagramParts extends EulerDiagramPartsCombinations,
   L,
   R,
