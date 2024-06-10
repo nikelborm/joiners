@@ -271,4 +271,4 @@ export type Join          <L, R> = InnerJoin<L, R>;
 export type SimpleJoin    <L, R> = InnerJoin<L, R>;
 export type CrossJoin     <L, R> = InnerJoin<L, R>;
 
-export type humanReadableJoinNames = keyof typeof joinTypeToEulerDiagramParts;
+export type joinTypes = keyof typeof joinTypeToEulerDiagramParts;

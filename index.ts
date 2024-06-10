@@ -5,20 +5,28 @@ import type {
   EulerDiagramPartsCombinations,
   Joiner,
   LRA,
-  humanReadableJoinNames
+  joinTypes
 } from './types';
 
-export function * join<L,R>(
+export function * join<
+  const EulerDiagramParts extends EulerDiagramPartsCombinations,
+  L,
+  R,
+  MergedResult,
+  const Detailing extends DetailingModifier = 'A',
+  TupleType = Joiner<L, R, EulerDiagramParts, Detailing>,
+>(
   left: Iterable<L>,
   right: Iterable<R>,
-  joinType: humanReadableJoinNames,
+  joinType: joinTypes,
+  merge: (tuple: TupleType) => MergedResult,
   passesJoinCondition: (tuple: LRA<L, R>) => boolean,
 ) {
   yield * joinGeneratorOnEulerDiagramParts(
     left,
     right,
+    merge,
     joinType === 'crossJoin' ? () => true : passesJoinCondition,
-    e => e,
     joinTypeToEulerDiagramParts[joinType],
     'A'
   );
@@ -34,8 +42,8 @@ export function * joinGeneratorOnEulerDiagramParts<
 >(
   left: Iterable<L>,
   right: Iterable<R>,
-  passesJoinCondition: (tuple: LRA<L, R>) => boolean,
   merge: (tuple: TupleType) => MergedResult,
+  passesJoinCondition: (tuple: LRA<L, R>) => boolean,
   eulerDiagramParts: EulerDiagramParts,
   // used to infer param for type system. Do not remove
   detailingModifier: Detailing = 'A' as Detailing
