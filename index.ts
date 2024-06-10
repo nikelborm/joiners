@@ -5,10 +5,10 @@ import type {
   EulerDiagramPartsCombinations,
   Joiner,
   LRA,
-  joinTypes
+  JoinType
 } from './types';
 
-export function * join<
+export function join<
   const EulerDiagramParts extends EulerDiagramPartsCombinations,
   L,
   R,
@@ -18,16 +18,54 @@ export function * join<
 >(
   left: Iterable<L>,
   right: Iterable<R>,
-  joinType: joinTypes,
+  joinType: Exclude<JoinType, 'crossJoin'>,
   merge: (tuple: TupleType) => MergedResult,
   passesJoinCondition: (tuple: LRA<L, R>) => boolean,
+): Generator<TupleType>;
+
+export function join<
+  const EulerDiagramParts extends EulerDiagramPartsCombinations,
+  L,
+  R,
+  MergedResult,
+  const Detailing extends DetailingModifier = 'A',
+  TupleType = Joiner<L, R, EulerDiagramParts, Detailing>,
+>(
+  left: Iterable<L>,
+  right: Iterable<R>,
+  joinType: 'crossJoin',
+  merge: (tuple: TupleType) => MergedResult,
+): Generator<TupleType>;
+
+export function * join<
+  const InferredJoinType extends JoinType,
+  L,
+  R,
+  MergedResult,
+  EulerDiagramParts extends EulerDiagramPartsCombinations = typeof joinTypeToEulerDiagramParts[InferredJoinType],
+  const Detailing extends DetailingModifier = 'A',
+  TupleType = Joiner<L, R, EulerDiagramParts, Detailing>,
+>(
+  left: Iterable<L>,
+  right: Iterable<R>,
+  joinType: InferredJoinType,
+  merge: (tuple: TupleType) => MergedResult,
+  passesJoinCondition?: (tuple: LRA<L, R>) => boolean,
 ) {
+  if (joinType === 'crossJoin' && passesJoinCondition !== undefined)
+    throw new Error();
+
+  if (joinType !== 'crossJoin' && passesJoinCondition === undefined)
+    throw new Error();
+
   yield * joinGeneratorOnEulerDiagramParts(
     left,
     right,
-    merge,
-    joinType === 'crossJoin' ? () => true : passesJoinCondition,
     joinTypeToEulerDiagramParts[joinType],
+    merge,
+    joinType === 'crossJoin'
+      ? () => true
+      : passesJoinCondition as (tuple: LRA<L, R>) => boolean,
     'A'
   );
 }
@@ -42,9 +80,9 @@ export function * joinGeneratorOnEulerDiagramParts<
 >(
   left: Iterable<L>,
   right: Iterable<R>,
+  eulerDiagramParts: EulerDiagramParts,
   merge: (tuple: TupleType) => MergedResult,
   passesJoinCondition: (tuple: LRA<L, R>) => boolean,
-  eulerDiagramParts: EulerDiagramParts,
   // used to infer param for type system. Do not remove
   detailingModifier: Detailing = 'A' as Detailing
 ) {

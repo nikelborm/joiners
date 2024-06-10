@@ -19,16 +19,16 @@ import type {
   NRA,
   RightAntiJoin,
   RightJoin,
-  joinTypes
+  JoinType
 } from './types';
 
 type GetJoinTypesByEulerDiagramMask<
   EulerDiagramPartsMask
 > = Merge<Extract<
   {
-    [JoinType in joinTypes]: [JoinType, typeof joinTypeToEulerDiagramParts[JoinType]];
-  }[joinTypes],
-  [joinTypes, EulerDiagramPartsMask]
+    [Key in JoinType]: [Key, typeof joinTypeToEulerDiagramParts[Key]];
+  }[JoinType],
+  [JoinType, EulerDiagramPartsMask]
 >>
 
 function getJoinTypesBy<Mask>(
@@ -60,38 +60,47 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
     a: Iterable<L>,
     b: Iterable<R>,
   },
-  joinResultForBothFilledDatasets: {
-    [K in
-      | 'leftJoin'
-      | 'rightJoin'
-      | 'fullJoin'
-      | 'innerJoin'
-      | 'crossJoin'
-      | 'leftAntiJoin'
-      | 'rightAntiJoin'
-      | 'fullAntiJoin'
-    ]: Iterable<MergeResult>
-  }
+  joinResultForBothFilledDatasets: Record<
+    | 'leftJoin'
+    | 'rightJoin'
+    | 'fullJoin'
+    | 'innerJoin'
+    | 'crossJoin'
+    | 'leftAntiJoin'
+    | 'rightAntiJoin'
+    | 'fullAntiJoin',
+    Iterable<MergeResult>
+  >
 ) => {
   const datasets = datasetGenerator();
 
   describe(suiteName, () => {
-    for (const joinType of objectKeys(joinTypeToEulerDiagramParts)) {
+    for (
+      const joinType of objectKeys(joinTypeToEulerDiagramParts)
+    ) {
       describe(joinType, () => {
+
         type choice = 'filled' | 'empty';
         const testOneJoin = (
           { a, b, expected }:
           { a: choice, b: choice, expected: unknown }
-        ) => test(`${capitalize(a)} A join ${b} B`, () => deepStrictEqual(
-          new Set(join(
-            a === 'empty' ? [] : datasets.a,
-            b === 'empty' ? [] : datasets.b,
-            joinType,
-            merge,
-            passesJoinCondition
-          )),
-          expected
-        ))
+        ) =>
+          test(
+            `${capitalize(a)} A join ${b} B`,
+            () => {
+              const left = a === 'empty' ? [] : datasets.a;
+              const right = b === 'empty' ? [] : datasets.b;
+              deepStrictEqual(
+                new Set(
+                  joinType === 'crossJoin'
+                    ? join(left, right, joinType, merge)
+                    : join(left, right, joinType, merge, passesJoinCondition)
+                ),
+                expected
+              )
+            }
+          )
+
         testOneJoin({
           a: 'empty',
           b: 'empty',
@@ -100,16 +109,20 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
         testOneJoin({
           a: 'filled',
           b: 'empty',
-          expected: joinsReturningAllPossibleAndExclusivelyLNAs.has(joinType)
-            ? new Set([...datasets.a].map(e => [e, _] as LNA<L, R>))
-            : new Set()
+          expected: new Set(
+            joinsReturningAllPossibleAndExclusivelyLNAs.has(joinType)
+              ? [...datasets.a].map(e => [e, _] as LNA<L, R>)
+              : []
+          )
         });
         testOneJoin({
           a: 'empty',
           b: 'filled',
-          expected: joinsReturningAllPossibleAndExclusivelyNRAs.has(joinType)
-            ? new Set([...datasets.b].map(e => [_, e] as NRA<L, R>))
-            : new Set()
+          expected: new Set(
+            joinsReturningAllPossibleAndExclusivelyNRAs.has(joinType)
+              ? [...datasets.b].map(e => [_, e] as NRA<L, R>)
+              : []
+          )
         });
         testOneJoin({
           a: 'filled',
