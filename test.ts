@@ -2,6 +2,7 @@ import "@total-typescript/ts-reset";
 import { deepStrictEqual } from 'node:assert/strict';
 import test, { describe } from 'node:test';
 import { capitalize, objectEntries, objectKeys } from 'tsafe';
+import { noCase } from 'change-case';
 import { _, joinTypeToEulerDiagramParts, joinTypeToEulerDiagramPartsWithoutAliases } from './constants';
 import { join } from './index';
 import type {
@@ -38,16 +39,6 @@ function getJoinTypesBy<Mask>(
   )
 }
 
-const joinsReturningAllPossibleAndExclusivelyLNAs =
-  getJoinTypesBy<`1${string}`>(
-    e => e.startsWith('1')
-  );
-
-const joinsReturningAllPossibleAndExclusivelyNRAs =
-  getJoinTypesBy<`${string}1`>(
-    e => e.endsWith('1')
-  );
-
 
 const testSuiteForAllJoins = <L, R, MergeResult>(
   suiteName: string,
@@ -63,42 +54,51 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
   >
 ) => {
   const datasets = datasetGenerator();
-  const choices = ['filled', 'empty'] as const;
+  const choices = ['empty', 'filled'] as const;
+  const left    = [[], datasets.a] as const;
+  const right   = [[], datasets.b] as const;
   type choices = typeof choices extends ReadonlyArray<infer U> ? U : never;
+
+  // Joins returning LNA for every row of A and no other rows
+  // when to filled A was joined empty B
+  const joinsProducingLNAs =
+    getJoinTypesBy<`1${string}`>(e => e.startsWith('1'));
+
+  // Joins returning NRA for every row of B and no other rows
+  // when to empty A was joined filled B
+  const joinsProducingNRAs =
+    getJoinTypesBy<`${string}1`>(e => e.endsWith('1'));
 
   describe(suiteName, () => {
     for (
       const joinType of objectKeys(joinResultForBothFilledDatasets)
     ) {
-      describe(joinType, () => {
-        const expectations = {
-          'a_empty_b_empty': [],
-          'a_empty_b_filled': joinsReturningAllPossibleAndExclusivelyNRAs.has(joinType)
-            ? [...datasets.b].map(e => merge([_, e] as NRA<L, R>))
-            : [],
-          'a_filled_b_empty': joinsReturningAllPossibleAndExclusivelyLNAs.has(joinType)
-            ? [...datasets.a].map(e => merge([e, _] as LNA<L, R>))
-            : [],
-          'a_filled_b_filled': joinResultForBothFilledDatasets[joinType]
-        };
-        for (const a of choices)
-          for (const b of choices)
-            test(
-              `${capitalize(a)} A join ${b} B`,
-              () => {
-                const left = a === 'empty' ? [] : datasets.a;
-                const right = b === 'empty' ? [] : datasets.b;
-                deepStrictEqual(
-                  new Set(
-                    joinType === 'crossJoin'
-                      ? join(left, right, joinType, merge)
-                      : join(left, right, joinType, merge, passesJoinCondition)
-                  ),
-                  new Set(expectations[`a_${a}_b_${b}` satisfies keyof typeof expectations])
-                )
-              }
-            )
-      })
+      const expectations = [
+        [],
+        Array.from(
+          joinsProducingNRAs.has(joinType) ? datasets.b : [],
+          e => merge([_, e])
+        ),
+        Array.from(
+          joinsProducingLNAs.has(joinType) ? datasets.a : [],
+          e => merge([e, _])
+        ),
+        joinResultForBothFilledDatasets[joinType]
+      ];
+      for (let a = 0; a < 2; a++)
+        for (let b = 0; b < 2; b++)
+          test(
+            `${capitalize(choices[a]).padEnd(6)} A ${noCase(joinType).padEnd(15)} ${choices[b].padEnd(6)} B`,
+            () =>
+              deepStrictEqual(
+                // new Set(
+                  [...(joinType === 'crossJoin'
+                    ? join(left[a], right[b], joinType, merge)
+                    : join(left[a], right[b], joinType, merge, passesJoinCondition))]
+                ,
+                expectations[a * 2 + b]
+              )
+          )
     }
   });
 }
@@ -141,8 +141,8 @@ testSuiteForAllJoins(
     ] satisfies LeftJoin<A1, B1>[],
     'rightJoin': [
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 1, v:  7 } ],
-      [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 1, v:  7 } ],
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 2, v:  7 } ],
+      [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 1, v:  7 } ],
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 2, v:  7 } ],
       [ _                             , { brand: brandB, id: 3, v:  8 } ],
       [ _                             , { brand: brandB, id: 4, v:  8 } ],
@@ -155,9 +155,9 @@ testSuiteForAllJoins(
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 2, v: 7  } ],
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 1, v: 7  } ],
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 2, v: 7  } ],
+      [ { brand: brandA, id: 5, v: 9 }, _                               ],
       [ _                             , { brand: brandB, id: 3, v: 8  } ],
       [ _                             , { brand: brandB, id: 4, v: 8  } ],
-      [ { brand: brandA, id: 5, v: 9 }, _                               ],
       [ _                             , { brand: brandB, id: 5, v: 10 } ],
     ] satisfies FullJoin<A1, B1>[],
     'innerJoin': [
@@ -206,9 +206,9 @@ testSuiteForAllJoins(
     'fullAntiJoin': [
       [ { brand: brandA, id: 1, v: 6 }, _                               ],
       [ { brand: brandA, id: 2, v: 6 }, _                               ],
+      [ { brand: brandA, id: 5, v: 9 }, _                               ],
       [ _                             , { brand: brandB, id: 3, v: 8  } ],
       [ _                             , { brand: brandB, id: 4, v: 8  } ],
-      [ { brand: brandA, id: 5, v: 9 }, _                               ],
       [ _                             , { brand: brandB, id: 5, v: 10 } ],
     ] satisfies FullAntiJoin<A1, B1>[],
   },
@@ -251,9 +251,9 @@ testSuiteForAllJoins(
       [ 7, 7 ],
       [ 7, 7 ],
       [ 7, 7 ],
-      [ _, 8 ],
-      [ _, 8 ],
       [ 9, _ ],
+      [ _, 8 ],
+      [ _, 8 ],
       [ _, 10 ],
     ] satisfies FullJoin<A2, B2>[],
     'innerJoin': [
@@ -302,9 +302,9 @@ testSuiteForAllJoins(
     'fullAntiJoin': [
       [ 6, _ ],
       [ 6, _ ],
-      [ _, 8 ],
-      [ _, 8 ],
       [ 9, _ ],
+      [ _, 8 ],
+      [ _, 8 ],
       [ _, 10 ],
     ] satisfies FullAntiJoin<A2, B2>[],
   },
