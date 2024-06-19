@@ -91,11 +91,10 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
             `${capitalize(choices[a]).padEnd(6)} A ${noCase(joinType).padEnd(15)} ${choices[b].padEnd(6)} B`,
             () =>
               deepStrictEqual(
-                // new Set(
-                  [...(joinType === 'crossJoin'
-                    ? join(left[a], right[b], joinType, merge)
-                    : join(left[a], right[b], joinType, merge, passesJoinCondition))]
-                ,
+                [...(joinType === 'crossJoin'
+                  ? join(left[a], right[b], joinType, merge)
+                  : join(left[a], right[b], joinType, merge, passesJoinCondition))
+                ],
                 expectations[a * 2 + b]
               )
           )

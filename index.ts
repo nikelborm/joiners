@@ -132,3 +132,33 @@ export function * joinGeneratorOnEulerDiagramParts<
     }
   }
 }
+
+const brandA = Symbol('A');
+const brandB = Symbol('B');
+
+type A1 = { brand: typeof brandA; id: number; v: number; };
+type B1 = { brand: typeof brandB; id: number; v: number; };
+
+
+for (const iterator of joinGeneratorOnEulerDiagramParts(
+  new Set<A1>([
+    { brand: brandA, id: 1, v: 6 },
+    { brand: brandA, id: 2, v: 6 },
+    { brand: brandA, id: 3, v: 7 },
+    { brand: brandA, id: 4, v: 7 },
+    { brand: brandA, id: 5, v: 9 }
+  ]),
+  new Set<B1>([
+    { brand: brandB, id: 1, v: 7  },
+    { brand: brandB, id: 2, v: 7  },
+    { brand: brandB, id: 3, v: 8  },
+    { brand: brandB, id: 4, v: 8  },
+    { brand: brandB, id: 5, v: 10 }
+  ]),
+  '101',
+  (tuple) => tuple[0] === _ ? tuple[1] : tuple[0],
+  (tuple) => tuple[0].v === tuple[1].v,
+  'E'
+)) {
+
+}
