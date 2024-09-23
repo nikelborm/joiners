@@ -28,3 +28,6 @@ assert<Equals<FullJoin<A, B>,
   | [A | _, B    ]
   | [A,     B | _]
 >>();
+
+
+// TODO: add type assertions not only for generics, but to a function call returns
