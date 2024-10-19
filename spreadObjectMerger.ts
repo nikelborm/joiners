@@ -1,3 +1,5 @@
+// TODO: When I'll finish this shit, post it to https://github.com/type-challenges/type-challenges
+
 import { At as GetNthCharacter } from 'ts-toolbelt/out/String/At';
 import { BBA, LNA, NRA } from 'types';
 
