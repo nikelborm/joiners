@@ -37,9 +37,9 @@ export const getSpreadObjectMerger = <const MergeStrategy extends '{ ...B, ...A 
       ? L
       : T extends BBA<infer L, infer R> // TODO: check this `extends` because it's SUS AF
       ? (
-        [MergeStrategy] extends ['{ ...B, ...A }']
+        [MergeStrategy] extends ['{ ...A, ...B }']
           ? MagicGeneric<L, R>
-          : [MergeStrategy] extends ['{ ...A, ...B }']
+          : [MergeStrategy] extends ['{ ...B, ...A }']
           ? MagicGeneric<R, L>
           : 'Go fuck yourself weirdo!'
       )
