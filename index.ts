@@ -192,9 +192,9 @@ const returnSpreadObjectMerger = <const MergeStrategy extends '{ ...B, ...A }' |
       ...(tuple[~~!AHasPriority] as object),
       ...(tuple[~~AHasPriority] as object)
     } as (
-      T extends NRA<any, infer R>
+      T extends NRA<any, infer R> //? TODO: replace with unknown?
       ? R
-      : T extends LNA<infer L, any>
+      : T extends LNA<infer L, any> //? TODO: replace with unknown?
       ? L
       : T extends BBA<infer L, infer R>
       // It's intentionally not just (L & R) because we need a way to reliably
@@ -219,9 +219,7 @@ const returnSpreadObjectMerger = <const MergeStrategy extends '{ ...B, ...A }' |
 // {a: string},  {a?: number}, {a: string | number}
 // {a: string},  {a: number},  {a: number}
 
-function returnAsIsMerger<const T>(t: T): T {
-  return t
-}
+const returnAsIsMerger = <const T>(t: T): T => t;
 
 
 

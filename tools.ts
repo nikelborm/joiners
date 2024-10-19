@@ -13,7 +13,7 @@ describe('invert', (t) => {
     [0b101, 0b010],
     [0b110, 0b001],
     [0b111, 0b000]
-  ]) {
+  ] as const) {
     test(
       `invertBits(${param}) === ${expected}`,
       () => equal(invertBits(param), expected)
