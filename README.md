@@ -6,7 +6,7 @@ c; npm exec tsx watch --clear-screen ./test.ts
 
 ## TODO
 
-1. deduplicate entries on keyGenerator
+1. Ability to deduplicate entries on keyGenerator with ability to choose what to do with with duplcates where 1|2 slots are empty
 2. Context Expander merger
 3. Pre-made join functions like `leftJoin(...)`
 4. queryBuilder that accepts multiple datasets and allows to make multiple joins on them
