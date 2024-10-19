@@ -16,7 +16,7 @@ import type {
   LRA,
   LeftAntiJoin,
   LeftJoin,
-  Merge,
+  Prettify,
   RightAntiJoin,
   RightJoin
 } from './types';
@@ -24,7 +24,7 @@ import type {
 function getJoinTypesBy<Mask>(
   bitmask: (eulerDiagramParts: EulerDiagramPartsCombinations) => boolean
 ) {
-  type JoinTypes = Merge<Extract<
+  type JoinTypes = Prettify<Extract<
     {
       [Key in JoinType]: [Key, typeof joinTypeToEulerDiagramParts[Key]];
     }[JoinType],
@@ -52,10 +52,13 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
   >
 ) => {
   const datasets = datasetGenerator();
-  const choices = ['empty', 'filled'] as const;
-  const left    = [[], datasets.a] as const;
-  const right   = [[], datasets.b] as const;
-  const indicies= [0, 1] as const;
+  const [ choices, left, right, indices ]  = [
+    ['empty', 'filled'],
+    [[], datasets.a],
+    [[], datasets.b],
+    [0, 1]
+  ] as const;
+
 
   // Joins returning LNA for every row of A and no other rows
   // when to filled A was joined empty B
@@ -83,8 +86,8 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
         ),
         joinResultForBothFilledDatasets[joinType]
       ];
-      for (const a of indicies)
-        for (const b of indicies)
+      for (const a of indices)
+        for (const b of indices)
           test(
             `${capitalize(choices[a]).padEnd(6)} A ${noCase(joinType).padEnd(15)} ${choices[b].padEnd(6)} B`,
             () => {

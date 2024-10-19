@@ -7,7 +7,8 @@ import type {
   EulerDiagramPartsCombinations,
   Joiner,
   JoinType,
-  LRA
+  LRA,
+  Prettify
 } from './types';
 
 
@@ -89,7 +90,7 @@ export function * joinGeneratorOnEulerDiagramParts<
   passesJoinCondition: (tuple: LRA<L, R>) => boolean,
   // used to infer param for type system. Do not remove
   detailingModifier: Detailing = 'A' as Detailing
-) {
+): Generator<Prettify<MergedResult>> {
   const bits = parseInt(eulerDiagramParts, 2);
   const shouldAddLeftExclusivePart  = bits & 0b100;
   const shouldAddInnerPart          = bits & 0b010;
@@ -183,8 +184,8 @@ for (const iterator of joinGeneratorOnEulerDiagramParts(
   ]),
   '011',
   // (tuple) => ({...(tuple[0] as object), ...(tuple[0] as object)}) as ((typeof tuple)[0] & (typeof tuple)[0]),
-  asIsMerger,
-  // getSpreadObjectMerger('{ ...A, ...B }'),
+  // asIsMerger,
+  getSpreadObjectMerger('{ ...A, ...B }'),
   (tuple) => tuple[0].v === tuple[1].v,
   'A'
 )) {

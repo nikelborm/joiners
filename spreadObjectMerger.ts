@@ -76,17 +76,17 @@ type OptionalKeyof<T> = Exclude<{
 
 type BothOptionalKeys<L, R> = OptionalKeyof<L> & OptionalKeyof<R>;
 
-// TODO: better name instead of MagicGeneric
+// TODO: find better name instead of MagicGeneric
 // TODO: God please don't tell me this shit breaks also readonly modifiers
 // on fields 😭😭😭
 // It's intentionally not just (L & R) because we need a way to reliably
 // specify that properties from right if exist, override properties from
 // left
 type MagicGeneric<L, R /* R has higher priority */> = {
-  [Key in Exclude<CommonKey<L, R>, BothOptionalKeys<L, R>>]:
+  [Key in Exclude<CommonKey<L, R>, BothOptionalKeys<L, R>>]-?:
     MagicGenericMergedBodyForCommonKey<L, R, Key>
 } & {
-  [Key in BothOptionalKeys<L, R>]?:
+  [Key in BothOptionalKeys<L, R>]+?:
     MagicGenericMergedBodyForCommonKey<L, R, Key>
 } & Omit<L, keyof R> & Omit<R, keyof L>;
 

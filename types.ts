@@ -2,7 +2,7 @@ import type { _, joinTypeToEulerDiagramParts } from './constants';
 
 export type _ = typeof _;
 
-export type Merge<T> = { [P in keyof T]: T[P] } & {};
+export type Prettify<T> = { [P in keyof T]: T[P] } & {};
 export type UnSet<T> = T extends Set<infer U> ? U : never;
 
 // it's intentionally [Something] extends ['___'] so that if union of
@@ -252,7 +252,7 @@ export type Joiner<
   // consist of only one option from EulerDiagramPartsCombinations and is
   // not for example "001" | "010"
   TupleStructureCodeBy<EulerDiagramParts> extends infer U extends TupleStructureCode
-    ? Merge<SelectJoinedTuplesAcceptUnion<L, R, `${U}${Detailing}`>>
+    ? Prettify<SelectJoinedTuplesAcceptUnion<L, R, `${U}${Detailing}`>>
     : ForbiddenLiteralUnion<'EulerDiagramParts', 'Joiner'>
 ;
 
