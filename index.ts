@@ -13,8 +13,6 @@ import type {
 } from './types';
 
 
-// TODO join function types don't work
-
 export function join<
   const InferredJoinType extends Exclude<JoinType, 'crossJoin'>,
   L,
