@@ -55,7 +55,7 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
   const choices = ['empty', 'filled'] as const;
   const left    = [[], datasets.a] as const;
   const right   = [[], datasets.b] as const;
-  type choices = typeof choices extends ReadonlyArray<infer U> ? U : never;
+  const indicies= [0, 1] as const;
 
   // Joins returning LNA for every row of A and no other rows
   // when to filled A was joined empty B
@@ -83,8 +83,8 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
         ),
         joinResultForBothFilledDatasets[joinType]
       ];
-      for (const a of [0, 1] as const)
-        for (const b of [0, 1] as const)
+      for (const a of indicies)
+        for (const b of indicies)
           test(
             `${capitalize(choices[a]).padEnd(6)} A ${noCase(joinType).padEnd(15)} ${choices[b].padEnd(6)} B`,
             () => {
@@ -96,7 +96,7 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
               // test for correctness of the result
               deepStrictEqual( initialResult, expectations[a * 2 + b])
 
-              // test if function clear
+              // test if function is pure and gives the same result
               deepStrictEqual( [...getJoinResult()], initialResult)
             }
           )

@@ -17,7 +17,7 @@
     "baseUrl": "./",
     "incremental": true,
     "lib": ["ESNext"],
-    "exactOptionalPropertyTypes": false, // this property is cool but sometimes it pisses me off
+    "exactOptionalPropertyTypes": true,
     "allowJs": false,
     "noErrorTruncation": true,
     "skipLibCheck": true,
