@@ -94,10 +94,10 @@ export function * joinGeneratorOnEulerDiagramParts<
   const shouldAddLeftExclusivePart  = bits & 0b100;
   const shouldAddInnerPart          = bits & 0b010;
   const shouldAddRightExclusivePart = bits & 0b001;
-  let ref = {} as { unmatchedRightIndexes: Set<number> };
+  let ref = {} as { unmatchedRightIndices: Set<number> };
 
   if(shouldAddRightExclusivePart)
-    ref.unmatchedRightIndexes = new Set(
+    ref.unmatchedRightIndices = new Set(
       Array.from(right, (e, i) => i)
     );
 
@@ -113,7 +113,7 @@ export function * joinGeneratorOnEulerDiagramParts<
       didLeftFailAllJoinConditions = false;
 
       if(shouldAddRightExclusivePart)
-        ref.unmatchedRightIndexes.delete(rIndex);
+        ref.unmatchedRightIndices.delete(rIndex);
 
       if(shouldAddInnerPart)
         yield merge(tuple as TupleType);
@@ -130,7 +130,7 @@ export function * joinGeneratorOnEulerDiagramParts<
     let rIndex = 0;
 
     for (const r of right) {
-      if(ref.unmatchedRightIndexes.has(rIndex++))
+      if(ref.unmatchedRightIndices.has(rIndex++))
         yield merge([_, r] as TupleType);
     }
   }
