@@ -89,7 +89,7 @@ export type Filter<
   [By] extends ['l-'] ? FilterOne<Tuple, 0> :
   [By] extends ['-r'] ? FilterOne<Tuple, 1> :
   [By] extends ['lr'] ? FilterOne<FilterOne<Tuple, 0>, 1> :
-  ForbiddenLiteralUnion<'By', 'Filter<Tuple, By>'>
+  ForbiddenLiteralUnion<'By', 'Filter'>
 ;
 
 export type to_<T> = Extract<T, _>;

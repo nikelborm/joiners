@@ -2,7 +2,7 @@
 
 import { At as GetNthCharacter } from 'ts-toolbelt/out/String/At';
 import { Equals, assert } from 'tsafe';
-import { BBA, LNA, NRA } from './types';
+import { BBA, ForbiddenLiteralUnion, LNA, NRA } from './types';
 
 function doesAHavePriority(
   mergeStrategy: '{ ...B, ...A }' | '{ ...A, ...B }'
@@ -39,9 +39,9 @@ export const getSpreadObjectMerger = <
         ? MagicGeneric<A, B>
         : [MergeStrategy] extends ['{ ...B, ...A }']
         ? MagicGeneric<B, A>
-        : 'Go fuck yourself weirdo!'
+        : ForbiddenLiteralUnion<'MergeStrategy', 'getSpreadObjectMerger'>
     )
-    : 'Go fuck yourself weirdo, but for a different reason!'
+    : `getSpreadObjectMerger(\'${MergeStrategy}\') function received invalid tuple type as an argument`
   )
 }
 
@@ -74,6 +74,10 @@ type Testcase1Result = MagicGeneric<
   { a?: string             },
   { a?: number             }
 >
+assert<Equals<Testcase1Result, { a?: string | number             }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{              }, { a: number    }] => { a: number    }
@@ -82,6 +86,10 @@ type Testcase2Result = MagicGeneric<
   { a?: string             },
   { a : number             }
 >
+assert<Equals<Testcase2Result, { a : number                      }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, {              }] => { a: string    }
@@ -90,6 +98,10 @@ type Testcase3Result = MagicGeneric<
   { a : string             },
   { a?: number             }
 >
+assert<Equals<Testcase3Result, { a : string | number             }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, { a: number    }] => { a: number    }
@@ -97,6 +109,10 @@ type Testcase4Result = MagicGeneric<
   { a : string             },
   { a : number             }
 >
+assert<Equals<Testcase4Result, { a : number                      }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{              }, {              }] => {              }
@@ -109,6 +125,10 @@ type Testcase5Result = MagicGeneric<
   { a?: string | undefined },
   { a?: number             }
 >
+assert<Equals<Testcase5Result, { a?: string | number | undefined }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{              }, { a: number    }] => { a: number    }
@@ -118,6 +138,10 @@ type Testcase6Result = MagicGeneric<
   { a?: string | undefined },
   { a : number             }
 >
+assert<Equals<Testcase6Result, { a : number                      }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, {              }] => { a: string    }
@@ -128,6 +152,10 @@ type Testcase7Result = MagicGeneric<
   { a : string | undefined },
   { a?: number             }
 >
+assert<Equals<Testcase7Result, { a : string | number | undefined }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, { a: number    }] => { a: number    }
@@ -136,6 +164,10 @@ type Testcase8Result = MagicGeneric<
   { a : string | undefined },
   { a : number             }
 >
+assert<Equals<Testcase8Result, { a : number                      }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{              }, {              }] => {              }
@@ -148,6 +180,10 @@ type Testcase9Result = MagicGeneric<
   { a?: string             },
   { a?: number | undefined }
 >
+assert<Equals<Testcase9Result, { a?: string | number | undefined }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{              }, { a: number    }] => { a: number    }
@@ -158,6 +194,10 @@ type Testcase10Result = MagicGeneric<
   { a?: string             },
   { a : number | undefined }
 >
+assert<Equals<Testcase10Result, { a : number | undefined          }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, {              }] => { a: string    }
@@ -167,6 +207,10 @@ type Testcase11Result = MagicGeneric<
   { a : string             },
   { a?: number | undefined }
 >
+assert<Equals<Testcase11Result, { a : string | number | undefined }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, { a: number    }] => { a: number    }
@@ -175,6 +219,10 @@ type Testcase12Result = MagicGeneric<
   { a : string             },
   { a : number | undefined }
 >
+assert<Equals<Testcase12Result, { a : number | undefined          }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{              }, {              }] => {              }
@@ -190,6 +238,10 @@ type Testcase13Result = MagicGeneric<
   { a?: string | undefined },
   { a?: number | undefined }
 >
+assert<Equals<Testcase13Result, { a?: string | number | undefined }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{              }, { a: number    }] => { a: number    }
@@ -202,6 +254,10 @@ type Testcase14Result = MagicGeneric<
   { a?: string | undefined },
   { a : number | undefined }
 >
+assert<Equals<Testcase14Result, { a : number | undefined          }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, {              }] => { a: string    }
@@ -214,6 +270,10 @@ type Testcase15Result = MagicGeneric<
   { a : string | undefined },
   { a?: number | undefined }
 >
+assert<Equals<Testcase15Result, { a : string | number | undefined }>>();
+//            ^?
+
+
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, { a: number    }] => { a: number    }
@@ -224,51 +284,5 @@ type Testcase16Result = MagicGeneric<
   { a : string | undefined },
   { a : number | undefined }
 >
-
-assert<Equals<Testcase1Result, { a?: string | number             }>>();
-//            ^?
-
-assert<Equals<Testcase2Result, { a : number                      }>>();
-//            ^?
-
-assert<Equals<Testcase3Result, { a : string | number             }>>();
-//            ^?
-
-assert<Equals<Testcase4Result, { a : number                      }>>();
-//            ^?
-
-assert<Equals<Testcase5Result, { a?: string | number | undefined }>>();
-//            ^?
-
-assert<Equals<Testcase6Result, { a : number                      }>>();
-//            ^?
-
-assert<Equals<Testcase7Result, { a : string | number | undefined }>>();
-//            ^?
-
-assert<Equals<Testcase8Result, { a : number                      }>>();
-//            ^?
-
-assert<Equals<Testcase9Result, { a?: string | number | undefined }>>();
-//            ^?
-
-assert<Equals<Testcase10Result, { a : number | undefined          }>>();
-//            ^?
-
-assert<Equals<Testcase11Result, { a : string | number | undefined }>>();
-//            ^?
-
-assert<Equals<Testcase12Result, { a : number | undefined          }>>();
-//            ^?
-
-assert<Equals<Testcase13Result, { a?: string | number | undefined }>>();
-//            ^?
-
-assert<Equals<Testcase14Result, { a : number | undefined          }>>();
-//            ^?
-
-assert<Equals<Testcase15Result, { a : string | number | undefined }>>();
-//            ^?
-
 assert<Equals<Testcase16Result, { a : number | undefined          }>>();
 //            ^?
