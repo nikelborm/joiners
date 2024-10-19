@@ -5,9 +5,10 @@ export type _ = typeof _;
 export type Merge<T> = { [P in keyof T]: T[P] } & {};
 export type UnSet<T> = T extends Set<infer U> ? U : never;
 
-// it's intentionally [Something] extends ['___'] so that if union of Something
-// is passed, generic won't ignore all elements except the first element of the
-// union. Generic will reject the whole union and throw error
+// it's intentionally [Something] extends ['___'] so that if union of
+// Something is passed, generic won't ignore all elements except the first
+// element of the union. Generic will reject the whole union and throw
+// error
 export type ForbiddenLiteralUnion<
   Argument extends string,
   OfTypeName extends string
@@ -96,9 +97,9 @@ export type to_<T> = Extract<T, _>;
 export type toV<T> = Exclude<T, _>;
 
 // ATOMS
-export type toLNA<L, R> = Filter<[toV<L>, to_<R>], 'lr'>; // [L, _];
-export type toNRA<L, R> = Filter<[to_<L>, toV<R>], 'lr'>; // [_, R];
-export type toLRA<L, R> = Filter<[toV<L>, toV<R>], 'lr'>; // [L, R];
+export type toLNA<L, R> = Filter<[toV<L>, to_<R>], 'lr'>; // [L, _]
+export type toNRA<L, R> = Filter<[to_<L>, toV<R>], 'lr'>; // [_, R]
+export type toLRA<L, R> = Filter<[toV<L>, toV<R>], 'lr'>; // [L, R]
 
 // To better understand atoms with letter B in code, see according compact
 export type toLBA<L, R> = toLNA<L, R> | toLRA<L, R>;
@@ -110,8 +111,8 @@ export type toLNC<L, R> = toLNA<L, R>;
 export type toNRC<L, R> = toNRA<L, R>;
 export type toLRC<L, R> = toLRA<L, R>;
 
-export type toLBC<L, R> = Filter<[toV<L>, R     ], 'l-'>; // [L    , R | _];
-export type toBRC<L, R> = Filter<[L     , toV<R>], '-r'>; // [L | _, R    ];
+export type toLBC<L, R> = Filter<[toV<L>, R     ], 'l-'>; // [L    , R | _]
+export type toBRC<L, R> = Filter<[L     , toV<R>], '-r'>; // [L | _, R    ]
 export type toBBC<L, R> = toLBC<L, R> | toBRC<L, R>
 
 // EXPANDED
