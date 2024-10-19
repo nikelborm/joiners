@@ -45,7 +45,8 @@ export type LNA<L, R> = [L, _];
 export type NRA<L, R> = [_, R];
 export type LRA<L, R> = [L, R];
 
-// To better understand atoms with letter B in code, see according compacted
+// To better understand atoms with letter B in code, see according
+// compacted versions
 export type LBA<L, R> = LNA<L, R> | LRA<L, R>;
 export type BRA<L, R> = NRA<L, R> | LRA<L, R>;
 export type BBA<L, R> = LNA<L, R> | NRA<L, R> | LRA<L, R>;
@@ -75,14 +76,14 @@ export type BBE<L, R> = BBA<L, R> | BBC<L, R>;
 
 
 export type FilterOne<
-  Tuple extends [any, any],
+  Tuple extends [unknown, unknown],
   Pos extends 0 | 1
 > = [Tuple[Pos]] extends [never] ? never : Tuple;
 
 
 
 export type Filter<
-  Tuple extends [any, any],
+  Tuple extends [unknown, unknown],
   By extends 'l-' | '-r' | 'lr'
 > =
   [By] extends ['l-'] ? FilterOne<Tuple, 0> :
@@ -178,6 +179,10 @@ export type TupleStructureCode = Exclude<
   `${LeftTupleStructureCodePart}${RightTupleStructureCodePart}`,
   'NN' | 'NB' | 'BN'
 >;
+// excluding NN, NB (== NN | NR) and BN (== NN | LN) doesn't mean there
+// will be no nulls as values in the result. It means that merge function
+// will never get EMPTYNESS (unique symbol stored in constant named "_") in
+// both left and right slot, because such merge is impossible
 
 export type TupleStructureCodeToDetailingModifierCombinations =
   `${TupleStructureCode}${DetailingModifier}`;
@@ -242,33 +247,32 @@ export type Joiner<
   EulerDiagramParts extends EulerDiagramPartsCombinations,
   Detailing extends DetailingModifier,
 > =
-  TupleStructureCodeBy<EulerDiagramParts> extends TupleStructureCode
-    ? Merge<SelectJoinedTuplesAcceptUnion<
-      L,
-      R,
-      `${TupleStructureCodeBy<EulerDiagramParts>}${Detailing}`
-    >>
+  // this check is basically needed to make sure that EulerDiagramParts
+  // consist of only one option from EulerDiagramPartsCombinations and is
+  // not for example "001" | "010"
+  TupleStructureCodeBy<EulerDiagramParts> extends infer U extends TupleStructureCode
+    ? Merge<SelectJoinedTuplesAcceptUnion<L, R, `${U}${Detailing}`>>
     : ForbiddenLiteralUnion<'EulerDiagramParts', 'Joiner'>
 ;
 
 
 
-export type LeftExclusiveJoin <L, R> = Joiner<L, R, '100', 'E'>;
-export type InnerJoin         <L, R> = Joiner<L, R, '010', 'E'>;
-export type RightExclusiveJoin<L, R> = Joiner<L, R, '001', 'E'>;
-export type LeftJoin          <L, R> = Joiner<L, R, '110', 'E'>;
-export type RightJoin         <L, R> = Joiner<L, R, '011', 'E'>;
-export type FullJoin          <L, R> = Joiner<L, R, '111', 'E'>;
-export type FullExclusiveJoin <L, R> = Joiner<L, R, '101', 'E'>;
+export type LeftExclusiveJoin <L, R, Detailing extends DetailingModifier> = Joiner<L, R, '100', Detailing>;
+export type InnerJoin         <L, R, Detailing extends DetailingModifier> = Joiner<L, R, '010', Detailing>;
+export type RightExclusiveJoin<L, R, Detailing extends DetailingModifier> = Joiner<L, R, '001', Detailing>;
+export type LeftJoin          <L, R, Detailing extends DetailingModifier> = Joiner<L, R, '110', Detailing>;
+export type RightJoin         <L, R, Detailing extends DetailingModifier> = Joiner<L, R, '011', Detailing>;
+export type FullJoin          <L, R, Detailing extends DetailingModifier> = Joiner<L, R, '111', Detailing>;
+export type FullExclusiveJoin <L, R, Detailing extends DetailingModifier> = Joiner<L, R, '101', Detailing>;
 
-export type LeftOuterJoin <L, R> = LeftJoin<L, R>;
-export type RightOuterJoin<L, R> = RightJoin<L, R>;
-export type FullOuterJoin <L, R> = FullJoin<L, R>;
-export type LeftAntiJoin  <L, R> = LeftExclusiveJoin<L, R>;
-export type RightAntiJoin <L, R> = RightExclusiveJoin<L, R>;
-export type FullAntiJoin  <L, R> = FullExclusiveJoin<L, R>;
-export type Join          <L, R> = InnerJoin<L, R>;
-export type SimpleJoin    <L, R> = InnerJoin<L, R>;
-export type CrossJoin     <L, R> = InnerJoin<L, R>;
+export type LeftOuterJoin <L, R, Detailing extends DetailingModifier> = LeftJoin          <L, R, Detailing>;
+export type RightOuterJoin<L, R, Detailing extends DetailingModifier> = RightJoin         <L, R, Detailing>;
+export type FullOuterJoin <L, R, Detailing extends DetailingModifier> = FullJoin          <L, R, Detailing>;
+export type LeftAntiJoin  <L, R, Detailing extends DetailingModifier> = LeftExclusiveJoin <L, R, Detailing>;
+export type RightAntiJoin <L, R, Detailing extends DetailingModifier> = RightExclusiveJoin<L, R, Detailing>;
+export type FullAntiJoin  <L, R, Detailing extends DetailingModifier> = FullExclusiveJoin <L, R, Detailing>;
+export type Join          <L, R, Detailing extends DetailingModifier> = InnerJoin         <L, R, Detailing>;
+export type SimpleJoin    <L, R, Detailing extends DetailingModifier> = InnerJoin         <L, R, Detailing>;
+export type CrossJoin     <L, R, Detailing extends DetailingModifier> = InnerJoin         <L, R, Detailing>;
 
 export type JoinType = keyof typeof joinTypeToEulerDiagramParts;

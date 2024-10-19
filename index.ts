@@ -62,10 +62,7 @@ export function join<
   merge: (tuple: TupleType) => MergedResult,
   passesJoinCondition?: (tuple: LRA<L, R>) => boolean,
 ) {
-  if (joinType === 'crossJoin' && passesJoinCondition !== undefined)
-    throw new Error();
-
-  if (joinType !== 'crossJoin' && passesJoinCondition === undefined)
+  if ((joinType === 'crossJoin') !== (passesJoinCondition === undefined))
     throw new Error();
 
   return joinGeneratorOnEulerDiagramParts(
@@ -215,6 +212,7 @@ const returnSpreadObjectMerger = <const MergeStrategy extends '{ ...B, ...A }' |
   }
 }
 
+// TODO also think of tests for {asd?: anything | undefined}
 // L,            R,            OrderedMerge<L, R>
 // {a?: string}, {a?: number}, {a?: string | number}
 // {a?: string}, {a: number} , {a: number}

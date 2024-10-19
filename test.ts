@@ -1,8 +1,8 @@
 import "@total-typescript/ts-reset";
+import { noCase } from 'change-case';
 import { deepStrictEqual } from 'node:assert/strict';
 import test, { describe } from 'node:test';
 import { capitalize, objectEntries, objectKeys } from 'tsafe';
-import { noCase } from 'change-case';
 import { _, joinTypeToEulerDiagramParts, joinTypeToEulerDiagramPartsWithoutAliases } from './constants';
 import { join } from './index';
 import type {
@@ -12,15 +12,13 @@ import type {
   FullAntiJoin,
   FullJoin,
   InnerJoin,
-  LNA,
+  JoinType,
   LRA,
   LeftAntiJoin,
   LeftJoin,
   Merge,
-  NRA,
   RightAntiJoin,
-  RightJoin,
-  JoinType
+  RightJoin
 } from './types';
 
 function getJoinTypesBy<Mask>(
@@ -85,8 +83,8 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
         ),
         joinResultForBothFilledDatasets[joinType]
       ];
-      for (let a = 0; a < 2; a++)
-        for (let b = 0; b < 2; b++)
+      for (const a of [0, 1] as const)
+        for (const b of [0, 1] as const)
           test(
             `${capitalize(choices[a]).padEnd(6)} A ${noCase(joinType).padEnd(15)} ${choices[b].padEnd(6)} B`,
             () => {
@@ -141,7 +139,7 @@ testSuiteForAllJoins(
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 1, v: 7 } ],
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 2, v: 7 } ],
       [ { brand: brandA, id: 5, v: 9 }, _                              ],
-    ] satisfies LeftJoin<A1, B1>[],
+    ] satisfies LeftJoin<A1, B1, 'A'>[],
     'rightJoin': [
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 1, v:  7 } ],
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 2, v:  7 } ],
@@ -150,7 +148,7 @@ testSuiteForAllJoins(
       [ _                             , { brand: brandB, id: 3, v:  8 } ],
       [ _                             , { brand: brandB, id: 4, v:  8 } ],
       [ _                             , { brand: brandB, id: 5, v: 10 } ],
-    ] satisfies RightJoin<A1, B1>[],
+    ] satisfies RightJoin<A1, B1, 'A'>[],
     'fullJoin': [
       [ { brand: brandA, id: 1, v: 6 }, _                               ],
       [ { brand: brandA, id: 2, v: 6 }, _                               ],
@@ -162,13 +160,13 @@ testSuiteForAllJoins(
       [ _                             , { brand: brandB, id: 3, v: 8  } ],
       [ _                             , { brand: brandB, id: 4, v: 8  } ],
       [ _                             , { brand: brandB, id: 5, v: 10 } ],
-    ] satisfies FullJoin<A1, B1>[],
+    ] satisfies FullJoin<A1, B1, 'A'>[],
     'innerJoin': [
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 1, v: 7 } ],
       [ { brand: brandA, id: 3, v: 7 }, { brand: brandB, id: 2, v: 7 } ],
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 1, v: 7 } ],
       [ { brand: brandA, id: 4, v: 7 }, { brand: brandB, id: 2, v: 7 } ],
-    ] satisfies InnerJoin<A1, B1>[],
+    ] satisfies InnerJoin<A1, B1, 'A'>[],
     'crossJoin': [
       [ { brand: brandA, id: 1, v: 6 }, { brand: brandB, id: 1, v:  7 } ],
       [ { brand: brandA, id: 1, v: 6 }, { brand: brandB, id: 2, v:  7 } ],
@@ -195,17 +193,17 @@ testSuiteForAllJoins(
       [ { brand: brandA, id: 5, v: 9 }, { brand: brandB, id: 3, v:  8 } ],
       [ { brand: brandA, id: 5, v: 9 }, { brand: brandB, id: 4, v:  8 } ],
       [ { brand: brandA, id: 5, v: 9 }, { brand: brandB, id: 5, v: 10 } ],
-    ] satisfies CrossJoin<A1, B1>[],
+    ] satisfies CrossJoin<A1, B1, 'A'>[],
     'leftAntiJoin': [
       [ { brand: brandA, id: 1, v: 6 }, _ ],
       [ { brand: brandA, id: 2, v: 6 }, _ ],
       [ { brand: brandA, id: 5, v: 9 }, _ ],
-    ] satisfies LeftAntiJoin<A1, B1>[],
+    ] satisfies LeftAntiJoin<A1, B1, 'A'>[],
     'rightAntiJoin': [
       [_, { brand: brandB, id: 3, v:  8 }],
       [_, { brand: brandB, id: 4, v:  8 }],
       [_, { brand: brandB, id: 5, v: 10 }],
-    ] satisfies RightAntiJoin<A1, B1>[],
+    ] satisfies RightAntiJoin<A1, B1, 'A'>[],
     'fullAntiJoin': [
       [ { brand: brandA, id: 1, v: 6 }, _                               ],
       [ { brand: brandA, id: 2, v: 6 }, _                               ],
@@ -213,7 +211,7 @@ testSuiteForAllJoins(
       [ _                             , { brand: brandB, id: 3, v: 8  } ],
       [ _                             , { brand: brandB, id: 4, v: 8  } ],
       [ _                             , { brand: brandB, id: 5, v: 10 } ],
-    ] satisfies FullAntiJoin<A1, B1>[],
+    ] satisfies FullAntiJoin<A1, B1, 'A'>[],
   },
 )
 
@@ -237,7 +235,7 @@ testSuiteForAllJoins(
       [ 7, 7 ],
       [ 7, 7 ],
       [ 9, _ ],
-    ] satisfies LeftJoin<A2, B2>[],
+    ] satisfies LeftJoin<A2, B2, 'A'>[],
     'rightJoin': [
       [ 7, 7 ],
       [ 7, 7 ],
@@ -246,7 +244,7 @@ testSuiteForAllJoins(
       [ _, 8 ],
       [ _, 8 ],
       [ _, 10 ],
-    ] satisfies RightJoin<A2, B2>[],
+    ] satisfies RightJoin<A2, B2, 'A'>[],
     'fullJoin': [
       [ 6, _ ],
       [ 6, _ ],
@@ -258,13 +256,13 @@ testSuiteForAllJoins(
       [ _, 8 ],
       [ _, 8 ],
       [ _, 10 ],
-    ] satisfies FullJoin<A2, B2>[],
+    ] satisfies FullJoin<A2, B2, 'A'>[],
     'innerJoin': [
       [ 7, 7 ],
       [ 7, 7 ],
       [ 7, 7 ],
       [ 7, 7 ],
-    ] satisfies InnerJoin<A2, B2>[],
+    ] satisfies InnerJoin<A2, B2, 'A'>[],
     'crossJoin': [
       [ 6, 7 ],
       [ 6, 7 ],
@@ -291,17 +289,17 @@ testSuiteForAllJoins(
       [ 9, 8 ],
       [ 9, 8 ],
       [ 9, 10 ],
-    ] satisfies CrossJoin<A2, B2>[],
+    ] satisfies CrossJoin<A2, B2, 'A'>[],
     'leftAntiJoin': [
       [ 6, _ ],
       [ 6, _ ],
       [ 9, _ ],
-    ] satisfies LeftAntiJoin<A2, B2>[],
+    ] satisfies LeftAntiJoin<A2, B2, 'A'>[],
     'rightAntiJoin': [
       [_, 8],
       [_, 8],
       [_, 10],
-    ] satisfies RightAntiJoin<A2, B2>[],
+    ] satisfies RightAntiJoin<A2, B2, 'A'>[],
     'fullAntiJoin': [
       [ 6, _ ],
       [ 6, _ ],
@@ -309,6 +307,6 @@ testSuiteForAllJoins(
       [ _, 8 ],
       [ _, 8 ],
       [ _, 10 ],
-    ] satisfies FullAntiJoin<A2, B2>[],
+    ] satisfies FullAntiJoin<A2, B2, 'A'>[],
   },
 )
