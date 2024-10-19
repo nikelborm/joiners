@@ -14,39 +14,37 @@ function doesAHavePriority(
 }
 
 
-export const getSpreadObjectMerger = <const MergeStrategy extends '{ ...B, ...A }' | '{ ...A, ...B }'>(
+export const getSpreadObjectMerger = <
+  const MergeStrategy extends '{ ...B, ...A }' | '{ ...A, ...B }'
+>(
   mergeStrategy: MergeStrategy
+) => <
+  const T extends BBA<unknown, unknown>
+>(
+  tuple: T
 ) => {
+  const AHasPriority = doesAHavePriority(mergeStrategy)
 
-  return <
-    const A,
-    const B,
-    const T extends BBA<A, B>
-  >(tuple: T) => {
-    const AHasPriority = doesAHavePriority(mergeStrategy)
-    if(AHasPriority) {
-      console.log(mergeStrategy);
-    }
-    return {
-      ...(tuple[~~!AHasPriority] as object),
-      ...(tuple[~~AHasPriority] as object)
-    } as (
-      T extends NRA<never, infer R>
-      ? R
-      : T extends LNA<infer L, never>
-      ? L
-      : T extends BBA<infer L, infer R> // TODO: check this `extends` because it's SUS AF
-      ? (
-        [MergeStrategy] extends ['{ ...A, ...B }']
-          ? MagicGeneric<L, R>
-          : [MergeStrategy] extends ['{ ...B, ...A }']
-          ? MagicGeneric<R, L>
-          : 'Go fuck yourself weirdo!'
-      )
-      : 'Go fuck yourself weirdo, but for a different reason!'
+  return {
+    ...(tuple[~~AHasPriority] as object),
+    ...(tuple[~~!AHasPriority] as object)
+  } as (
+    T extends NRA<never, infer B>
+    ? B
+    : T extends LNA<infer A, never>
+    ? A
+    : T extends BBA<infer A, infer B> // TODO: check this `extends` because it's SUS AF
+    ? (
+      [MergeStrategy] extends ['{ ...A, ...B }']
+        ? MagicGeneric<A, B>
+        : [MergeStrategy] extends ['{ ...B, ...A }']
+        ? MagicGeneric<B, A>
+        : 'Go fuck yourself weirdo!'
     )
-  }
+    : 'Go fuck yourself weirdo, but for a different reason!'
+  )
 }
+
 
 // It's intentionally not just (L & R) because we need a way to reliably
 // specify that properties from right if exist, override properties from
