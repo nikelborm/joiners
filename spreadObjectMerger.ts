@@ -43,7 +43,7 @@ export const getSpreadObjectMerger = <const MergeStrategy extends '{ ...B, ...A 
           ? MagicGeneric<R, L>
           : 'Go fuck yourself weirdo!'
       )
-      : never
+      : 'Go fuck yourself weirdo, but for a different reason!'
     )
   }
 }
@@ -62,28 +62,43 @@ type MagicGeneric<L, R /* R has higher priority */> = {
   )
 };
 
-//! Should pass with { "exactOptionalPropertyTypes": true, "strictNullChecks": true }
+//! Should pass with {
+//!   "exactOptionalPropertyTypes": true,
+//!   "strictNullChecks": true
+//! }
 
 // Merge Candidates                     => Merge Results
 // [{              }, {              }] => {              }
 // [{ a: string    }, {              }] => { a: string    }
 // [{              }, { a: number    }] => { a: number    }
 // [{ a: string    }, { a: number    }] => { a: number    }
-assert<Equals<MagicGeneric<{ a?: string             }, { a?: number             }>, { a?: string | number             }>>();
+type Testcase1Result = MagicGeneric<
+  { a?: string             },
+  { a?: number             }
+>
 
 // Merge Candidates                     => Merge Results
 // [{              }, { a: number    }] => { a: number    }
 // [{ a: string    }, { a: number    }] => { a: number    }
-assert<Equals<MagicGeneric<{ a?: string             }, { a : number             }>, { a : number                      }>>();
+type Testcase2Result = MagicGeneric<
+  { a?: string             },
+  { a : number             }
+>
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, {              }] => { a: string    }
 // [{ a: string    }, { a: number    }] => { a: number    }
-assert<Equals<MagicGeneric<{ a : string             }, { a?: number             }>, { a : string | number             }>>();
+type Testcase3Result = MagicGeneric<
+  { a : string             },
+  { a?: number             }
+>
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, { a: number    }] => { a: number    }
-assert<Equals<MagicGeneric<{ a : string             }, { a : number             }>, { a : number                      }>>();
+type Testcase4Result = MagicGeneric<
+  { a : string             },
+  { a : number             }
+>
 
 // Merge Candidates                     => Merge Results
 // [{              }, {              }] => {              }
@@ -92,25 +107,37 @@ assert<Equals<MagicGeneric<{ a : string             }, { a : number             
 // [{              }, { a: number    }] => { a: number    }
 // [{ a: string    }, { a: number    }] => { a: number    }
 // [{ a: undefined }, { a: number    }] => { a: number    }
-assert<Equals<MagicGeneric<{ a?: string | undefined }, { a?: number             }>, { a?: string | number | undefined }>>();
+type Testcase5Result = MagicGeneric<
+  { a?: string | undefined },
+  { a?: number             }
+>
 
 // Merge Candidates                     => Merge Results
 // [{              }, { a: number    }] => { a: number    }
 // [{ a: string    }, { a: number    }] => { a: number    }
 // [{ a: undefined }, { a: number    }] => { a: number    }
-assert<Equals<MagicGeneric<{ a?: string | undefined }, { a : number             }>, { a : number                      }>>();
+type Testcase6Result = MagicGeneric<
+  { a?: string | undefined },
+  { a : number             }
+>
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, {              }] => { a: string    }
 // [{ a: undefined }, {              }] => { a: undefined }
 // [{ a: string    }, { a: number    }] => { a: number    }
 // [{ a: undefined }, { a: number    }] => { a: number    }
-assert<Equals<MagicGeneric<{ a : string | undefined }, { a?: number             }>, { a : string | number | undefined }>>();
+type Testcase7Result = MagicGeneric<
+  { a : string | undefined },
+  { a?: number             }
+>
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, { a: number    }] => { a: number    }
 // [{ a: undefined }, { a: number    }] => { a: number    }
-assert<Equals<MagicGeneric<{ a : string | undefined }, { a : number             }>, { a : number                      }>>();
+type Testcase8Result = MagicGeneric<
+  { a : string | undefined },
+  { a : number             }
+>
 
 // Merge Candidates                     => Merge Results
 // [{              }, {              }] => {              }
@@ -119,25 +146,37 @@ assert<Equals<MagicGeneric<{ a : string | undefined }, { a : number             
 // [{              }, { a: undefined }] => { a: undefined }
 // [{ a: string    }, { a: number    }] => { a: number    }
 // [{ a: string    }, { a: undefined }] => { a: undefined }
-assert<Equals<MagicGeneric<{ a?: string             }, { a?: number | undefined }>, { a?: string | number | undefined }>>();
+type Testcase9Result = MagicGeneric<
+  { a?: string             },
+  { a?: number | undefined }
+>
 
 // Merge Candidates                     => Merge Results
 // [{              }, { a: number    }] => { a: number    }
 // [{              }, { a: undefined }] => { a: undefined }
 // [{ a: string    }, { a: number    }] => { a: number    }
 // [{ a: string    }, { a: undefined }] => { a: undefined }
-assert<Equals<MagicGeneric<{ a?: string             }, { a : number | undefined }>, { a : number | undefined          }>>();
+type Testcase10Result = MagicGeneric<
+  { a?: string             },
+  { a : number | undefined }
+>
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, {              }] => { a: string    }
 // [{ a: string    }, { a: number    }] => { a: number    }
 // [{ a: string    }, { a: undefined }] => { a: undefined }
-assert<Equals<MagicGeneric<{ a : string             }, { a?: number | undefined }>, { a : string | number | undefined }>>();
+type Testcase11Result = MagicGeneric<
+  { a : string             },
+  { a?: number | undefined }
+>
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, { a: number    }] => { a: number    }
 // [{ a: string    }, { a: undefined }] => { a: undefined }
-assert<Equals<MagicGeneric<{ a : string             }, { a : number | undefined }>, { a : number | undefined          }>>();
+type Testcase12Result = MagicGeneric<
+  { a : string             },
+  { a : number | undefined }
+>
 
 // Merge Candidates                     => Merge Results
 // [{              }, {              }] => {              }
@@ -149,7 +188,10 @@ assert<Equals<MagicGeneric<{ a : string             }, { a : number | undefined 
 // [{              }, { a: undefined }] => { a: undefined }
 // [{ a: string    }, { a: undefined }] => { a: undefined }
 // [{ a: undefined }, { a: undefined }] => { a: undefined }
-assert<Equals<MagicGeneric<{ a?: string | undefined }, { a?: number | undefined }>, { a?: string | number | undefined }>>();
+type Testcase13Result = MagicGeneric<
+  { a?: string | undefined },
+  { a?: number | undefined }
+>
 
 // Merge Candidates                     => Merge Results
 // [{              }, { a: number    }] => { a: number    }
@@ -158,7 +200,10 @@ assert<Equals<MagicGeneric<{ a?: string | undefined }, { a?: number | undefined 
 // [{              }, { a: undefined }] => { a: undefined }
 // [{ a: string    }, { a: undefined }] => { a: undefined }
 // [{ a: undefined }, { a: undefined }] => { a: undefined }
-assert<Equals<MagicGeneric<{ a?: string | undefined }, { a : number | undefined }>, { a : number | undefined          }>>();
+type Testcase14Result = MagicGeneric<
+  { a?: string | undefined },
+  { a : number | undefined }
+>
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, {              }] => { a: string    }
@@ -167,11 +212,65 @@ assert<Equals<MagicGeneric<{ a?: string | undefined }, { a : number | undefined 
 // [{ a: undefined }, { a: number    }] => { a: number    }
 // [{ a: string    }, { a: undefined }] => { a: undefined }
 // [{ a: undefined }, { a: undefined }] => { a: undefined }
-assert<Equals<MagicGeneric<{ a : string | undefined }, { a?: number | undefined }>, { a : string | number | undefined }>>();
+type Testcase15Result = MagicGeneric<
+  { a : string | undefined },
+  { a?: number | undefined }
+>
 
 // Merge Candidates                     => Merge Results
 // [{ a: string    }, { a: number    }] => { a: number    }
 // [{ a: undefined }, { a: number    }] => { a: number    }
 // [{ a: string    }, { a: undefined }] => { a: undefined }
 // [{ a: undefined }, { a: undefined }] => { a: undefined }
-assert<Equals<MagicGeneric<{ a : string | undefined }, { a : number | undefined }>, { a : number | undefined          }>>();
+type Testcase16Result = MagicGeneric<
+  { a : string | undefined },
+  { a : number | undefined }
+>
+
+assert<Equals<Testcase1Result, { a?: string | number             }>>();
+//            ^?
+
+assert<Equals<Testcase2Result, { a : number                      }>>();
+//            ^?
+
+assert<Equals<Testcase3Result, { a : string | number             }>>();
+//            ^?
+
+assert<Equals<Testcase4Result, { a : number                      }>>();
+//            ^?
+
+assert<Equals<Testcase5Result, { a?: string | number | undefined }>>();
+//            ^?
+
+assert<Equals<Testcase6Result, { a : number                      }>>();
+//            ^?
+
+assert<Equals<Testcase7Result, { a : string | number | undefined }>>();
+//            ^?
+
+assert<Equals<Testcase8Result, { a : number                      }>>();
+//            ^?
+
+assert<Equals<Testcase9Result, { a?: string | number | undefined }>>();
+//            ^?
+
+assert<Equals<Testcase10Result, { a : number | undefined          }>>();
+//            ^?
+
+assert<Equals<Testcase11Result, { a : string | number | undefined }>>();
+//            ^?
+
+assert<Equals<Testcase12Result, { a : number | undefined          }>>();
+//            ^?
+
+assert<Equals<Testcase13Result, { a?: string | number | undefined }>>();
+//            ^?
+
+assert<Equals<Testcase14Result, { a : number | undefined          }>>();
+//            ^?
+
+assert<Equals<Testcase15Result, { a : string | number | undefined }>>();
+//            ^?
+
+assert<Equals<Testcase16Result, { a : number | undefined          }>>();
+//            ^?
