@@ -1,18 +1,16 @@
 import "@total-typescript/ts-reset";
+import { At as GetNthCharacter } from 'ts-toolbelt/out/String/At';
 import { _, joinTypeToEulerDiagramParts } from './constants';
 import type {
+  BBA,
   DetailingModifier,
   EulerDiagramPartsCombinations,
   Joiner,
-  LRA,
   JoinType,
-  BBE,
-  BBA,
-  NRA,
   LNA,
-  Merge
+  LRA,
+  NRA
 } from './types';
-import { At as GetNthCharacter } from 'ts-toolbelt/out/String/At';
 
 
 // TODO join function types don't work
