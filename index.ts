@@ -18,33 +18,36 @@ import { At as GetNthCharacter } from 'ts-toolbelt/out/String/At';
 // TODO join function types don't work
 
 export function join<
-  const EulerDiagramParts extends EulerDiagramPartsCombinations,
+  const InferredJoinType extends Exclude<JoinType, 'crossJoin'>,
   L,
   R,
   MergedResult,
+  EulerDiagramParts extends EulerDiagramPartsCombinations
+    = typeof joinTypeToEulerDiagramParts[InferredJoinType],
   const Detailing extends DetailingModifier = 'A',
   TupleType = Joiner<L, R, EulerDiagramParts, Detailing>,
 >(
   left: Iterable<L>,
   right: Iterable<R>,
-  joinType: Exclude<JoinType, 'crossJoin'>,
+  joinType: InferredJoinType,
   merge: (tuple: TupleType) => MergedResult,
   passesJoinCondition: (tuple: LRA<L, R>) => boolean,
-): Generator<TupleType>;
+): Generator<MergedResult>;
 
 export function join<
-  const EulerDiagramParts extends EulerDiagramPartsCombinations,
+  const InferredJoinType extends 'crossJoin',
   L,
   R,
   MergedResult,
+  EulerDiagramParts extends "010",
   const Detailing extends DetailingModifier = 'A',
   TupleType = Joiner<L, R, EulerDiagramParts, Detailing>,
 >(
   left: Iterable<L>,
   right: Iterable<R>,
-  joinType: 'crossJoin',
+  joinType: InferredJoinType,
   merge: (tuple: TupleType) => MergedResult,
-): Generator<TupleType>;
+): Generator<MergedResult>;
 
 export function join<
   const InferredJoinType extends JoinType,
@@ -61,7 +64,7 @@ export function join<
   joinType: InferredJoinType,
   merge: (tuple: TupleType) => MergedResult,
   passesJoinCondition?: (tuple: LRA<L, R>) => boolean,
-) {
+): Generator<MergedResult> {
   if ((joinType === 'crossJoin') !== (passesJoinCondition === undefined))
     throw new Error();
 
@@ -241,20 +244,22 @@ for (const iterator of joinGeneratorOnEulerDiagramParts(
   ]),
   '011',
   // (tuple) => ({...(tuple[0] as object), ...(tuple[0] as object)}) as ((typeof tuple)[0] & (typeof tuple)[0]),
-  // returnAsIsMerger,
-  returnSpreadObjectMerger('{ ...A, ...B }'),
+  returnAsIsMerger,
+  // returnSpreadObjectMerger('{ ...A, ...B }'),
   (tuple) => tuple[0].v === tuple[1].v,
   'A'
 )) {
 
 }
 
-for (const element of joinGeneratorOnEulerDiagramParts(
+for (const element of join(
   [0, 5, 8, 2],
-  [2, 4, 8, 2],
-  '011',
-  e => e,
-  (tuple) => tuple[0] === tuple[1])
+  ['2', 4, 8, 2],
+  // 'crossJoin',
+  'rightJoin',
+  <const E>(e: E) => [e, 'wtf'] as (E extends any ? [E, 'wtf'] : never)
+  , (tuple) => tuple[0] === tuple[1]
+)
 ) {
   console.log(element)
 }
