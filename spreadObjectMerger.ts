@@ -46,19 +46,51 @@ export const getSpreadObjectMerger = <
 }
 
 
+type PreserveUndefinedOnlyIfWasExplicit<T, Key extends keyof T> =
+  { [K in Key]: T[Key] } extends { [K in Key]: Exclude<T[Key], undefined> }
+  ? Exclude<T[Key], undefined>
+  : T[Key];
+
+assert<Equals<PreserveUndefinedOnlyIfWasExplicit<{ a?: string             }, 'a'>, string             >>();
+assert<Equals<PreserveUndefinedOnlyIfWasExplicit<{ a?: string | undefined }, 'a'>, string | undefined >>();
+assert<Equals<PreserveUndefinedOnlyIfWasExplicit<{ a : string             }, 'a'>, string             >>();
+assert<Equals<PreserveUndefinedOnlyIfWasExplicit<{ a : string | undefined }, 'a'>, string | undefined >>();
+
+
+type CommonKey<L, R> = keyof L & keyof R;
+
+type MagicGenericMergedBodyForCommonKey<
+  L,
+  R,
+  Key extends CommonKey<L, R>
+> = R extends { [K in Key]: R[Key] }
+  ? R[Key]
+  :
+    | PreserveUndefinedOnlyIfWasExplicit<R, Key>
+    | PreserveUndefinedOnlyIfWasExplicit<L, Key>
+;
+
+type OptionalKeyof<T> = Exclude<{
+  [Key in keyof T]: T extends Record<Key, T[Key]> ? never : Key;
+}[keyof T], undefined>;
+
+type BothOptionalKeys<L, R> = OptionalKeyof<L> & OptionalKeyof<R>;
+
+// TODO: better name instead of MagicGeneric
+// TODO: God please don't tell me this shit breaks also readonly modifiers
+// on fields 😭😭😭
 // It's intentionally not just (L & R) because we need a way to reliably
 // specify that properties from right if exist, override properties from
 // left
 type MagicGeneric<L, R /* R has higher priority */> = {
-  [Key in keyof L | keyof R]: (
-    // TODO: add optionality support so it doesn't break ?: of source objects
-    Key extends keyof R
-      ? R[Key]
-      : Key extends keyof L
-        ? L[Key]
-        : never
-  )
-};
+  [Key in Exclude<CommonKey<L, R>, BothOptionalKeys<L, R>>]:
+    MagicGenericMergedBodyForCommonKey<L, R, Key>
+} & {
+  [Key in BothOptionalKeys<L, R>]?:
+    MagicGenericMergedBodyForCommonKey<L, R, Key>
+} & Omit<L, keyof R> & Omit<R, keyof L>;
+
+
 
 //! Should pass with {
 //!   "exactOptionalPropertyTypes": true,
