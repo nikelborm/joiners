@@ -1,6 +1,6 @@
 export const _ = Symbol('_');
 
-export const joinTypeToEulerDiagramPartsWithoutAliases = Object.freeze({
+export const joinNameToEulerDiagramPartsWithoutAliases = Object.freeze({
   leftJoin     : '110',
   rightJoin    : '011',
   fullJoin     : '111',
@@ -11,8 +11,8 @@ export const joinTypeToEulerDiagramPartsWithoutAliases = Object.freeze({
   fullAntiJoin : '101',
 } as const);
 
-export const joinTypeToEulerDiagramParts = Object.freeze({
-  ...joinTypeToEulerDiagramPartsWithoutAliases,
+export const joinNameToEulerDiagramParts = Object.freeze({
+  ...joinNameToEulerDiagramPartsWithoutAliases,
   leftOuterJoin     : '110',
   rightOuterJoin    : '011',
   fullOuterJoin     : '111',

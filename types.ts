@@ -1,4 +1,4 @@
-import type { _, joinTypeToEulerDiagramParts } from './constants';
+import type { _, joinNameToEulerDiagramParts } from './constants';
 
 export type _ = typeof _;
 
@@ -242,29 +242,43 @@ export type SelectJoinedTuplesAcceptUnion<
 
 
 
-export type Joiner<
+export type JoinOnEulerDiagramParts<
   L,
   R,
   EulerDiagramParts extends EulerDiagramPartsCombinations,
   Detailing extends DetailingModifier,
 > =
-  // this check is basically needed to make sure that EulerDiagramParts
-  // consist of only one option from EulerDiagramPartsCombinations and is
-  // not for example "001" | "010"
+  // TupleStructureCodeBy can return string literal describing the error
+  // (thrown when EulerDiagramParts consists of union like "001" | "010"
+  // instead of single string literal like "010") and for that `extends
+  // TupleStructureCode` was added.
   TupleStructureCodeBy<EulerDiagramParts> extends infer U extends TupleStructureCode
-    ? Prettify<SelectJoinedTuplesAcceptUnion<L, R, `${U}${Detailing}`>>
+    ? SelectJoinedTuplesAcceptUnion<L, R, `${U}${Detailing}`>
     : ForbiddenLiteralUnion<'EulerDiagramParts', 'Joiner'>
 ;
 
 
+export type JoinOnJoinName<
+  L,
+  R,
+  JoinName extends AllJoinNames,
+  Detailing extends DetailingModifier,
+> = JoinOnEulerDiagramParts<
+  L,
+  R,
+  typeof joinNameToEulerDiagramParts[JoinName],
+  Detailing
+>;
 
-export type LeftExclusiveJoin <L, R, Detailing extends DetailingModifier> = Joiner<L, R, '100', Detailing>;
-export type InnerJoin         <L, R, Detailing extends DetailingModifier> = Joiner<L, R, '010', Detailing>;
-export type RightExclusiveJoin<L, R, Detailing extends DetailingModifier> = Joiner<L, R, '001', Detailing>;
-export type LeftJoin          <L, R, Detailing extends DetailingModifier> = Joiner<L, R, '110', Detailing>;
-export type RightJoin         <L, R, Detailing extends DetailingModifier> = Joiner<L, R, '011', Detailing>;
-export type FullJoin          <L, R, Detailing extends DetailingModifier> = Joiner<L, R, '111', Detailing>;
-export type FullExclusiveJoin <L, R, Detailing extends DetailingModifier> = Joiner<L, R, '101', Detailing>;
+
+
+export type LeftExclusiveJoin <L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '100', Detailing>;
+export type InnerJoin         <L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '010', Detailing>;
+export type RightExclusiveJoin<L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '001', Detailing>;
+export type LeftJoin          <L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '110', Detailing>;
+export type RightJoin         <L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '011', Detailing>;
+export type FullJoin          <L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '111', Detailing>;
+export type FullExclusiveJoin <L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '101', Detailing>;
 
 export type LeftOuterJoin <L, R, Detailing extends DetailingModifier> = LeftJoin          <L, R, Detailing>;
 export type RightOuterJoin<L, R, Detailing extends DetailingModifier> = RightJoin         <L, R, Detailing>;
@@ -276,4 +290,4 @@ export type Join          <L, R, Detailing extends DetailingModifier> = InnerJoi
 export type SimpleJoin    <L, R, Detailing extends DetailingModifier> = InnerJoin         <L, R, Detailing>;
 export type CrossJoin     <L, R, Detailing extends DetailingModifier> = InnerJoin         <L, R, Detailing>;
 
-export type JoinType = keyof typeof joinTypeToEulerDiagramParts;
+export type AllJoinNames = keyof typeof joinNameToEulerDiagramParts;
