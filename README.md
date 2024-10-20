@@ -8,7 +8,7 @@ predefined result mappers, ability to join any Iterable instead of just
 Maps and more!
 
 ```bash
-c; npm exec tsx watch --clear-screen ./test.ts
+c; npm start
 ```
 
 ## TODO

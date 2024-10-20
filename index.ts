@@ -1,7 +1,7 @@
 import "@total-typescript/ts-reset";
 import { join } from './joinOnJoinName';
 import { joinOnEulerDiagramParts } from './joinOnEulerDiagramParts';
-
+import {} from './namedJoinFunctions';
 
 const brandA = Symbol('A');
 const brandB = Symbol('B');
