@@ -8,7 +8,7 @@ support, expanded join types and join aliases support, predefined result
 mappers, ability to join any Iterable instead of just Maps and more!
 
 ```bash
-c; npm start
+c; npm test
 ```
 
 ## TODO

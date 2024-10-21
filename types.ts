@@ -18,14 +18,6 @@ export type ForbiddenLiteralUnion<
   }<...> accepts only single string literal (literal union is forbidden).`
 ;
 
-// 3rd letter
-export type DetailingModifier = 'A' | 'C' | 'E';
-// A - Atomic. Union of narrowest LR tuple types. Narrowest means that
-// elements of the LR tuple are not unions and either _ or value (L or R,
-// depending on the position)
-// C - Compacted. The most high order representation of the combination
-// of atoms.
-// E - Expanded. Union of all possible representations of compacted tuple
 
 // 1st letter:
 export type LeftTupleStructureCodePart = 'N' | 'L' | 'B';
@@ -38,6 +30,16 @@ export type RightTupleStructureCodePart = 'N' | 'R' | 'B';
 // N - No element(empty/_). 2nd element of the tuple is _
 // R - Right element(R)   . 2nd element of the tuple is R
 // B - Both               . 2nd element of the tuple is (_ | R)
+
+// 3rd letter
+export type DetailingModifier = 'A' | 'C' | 'E';
+// A - Atomic. Union of distributed LR tuple types. Distributed means that
+// in each of the two slots of LR tuple there will be no unions of _
+// (emptyness) and value (L or R, depending on the position inside a tuple)
+// C - Compacted. The most high order representation of the combination of
+// atoms. Slots inside the tuple are unions of emptyness and value.
+// E - Expanded. A union of all possible representations of LR tuple, the
+// union of both Atomic and Expanded types.
 
 
 
@@ -93,36 +95,36 @@ export type Filter<
   ForbiddenLiteralUnion<'By', 'Filter'>
 ;
 
-export type to_<T> = Extract<T, _>;
-export type toV<T> = Exclude<T, _>;
+export type To_<T> = Extract<T, _>;
+export type ToV<T> = Exclude<T, _>;
 
 // ATOMS
-export type toLNA<L, R> = Filter<[toV<L>, to_<R>], 'lr'>; // [L, _]
-export type toNRA<L, R> = Filter<[to_<L>, toV<R>], 'lr'>; // [_, R]
-export type toLRA<L, R> = Filter<[toV<L>, toV<R>], 'lr'>; // [L, R]
+export type ToLNA<L, R> = Filter<[ToV<L>, To_<R>], 'lr'>; // [L, _]
+export type ToNRA<L, R> = Filter<[To_<L>, ToV<R>], 'lr'>; // [_, R]
+export type ToLRA<L, R> = Filter<[ToV<L>, ToV<R>], 'lr'>; // [L, R]
 
-// To better understand atoms with letter B in code, see according compact
-export type toLBA<L, R> = toLNA<L, R> | toLRA<L, R>;
-export type toBRA<L, R> = toNRA<L, R> | toLRA<L, R>;
-export type toBBA<L, R> = toLNA<L, R> | toNRA<L, R> | toLRA<L, R>;
+// To better understand aToms with letter B in code, see according compact
+export type ToLBA<L, R> = ToLNA<L, R> | ToLRA<L, R>;
+export type ToBRA<L, R> = ToNRA<L, R> | ToLRA<L, R>;
+export type ToBBA<L, R> = ToLNA<L, R> | ToNRA<L, R> | ToLRA<L, R>;
 
 // COMPACTED
-export type toLNC<L, R> = toLNA<L, R>;
-export type toNRC<L, R> = toNRA<L, R>;
-export type toLRC<L, R> = toLRA<L, R>;
+export type ToLNC<L, R> = ToLNA<L, R>;
+export type ToNRC<L, R> = ToNRA<L, R>;
+export type ToLRC<L, R> = ToLRA<L, R>;
 
-export type toLBC<L, R> = Filter<[toV<L>, R     ], 'l-'>; // [L    , R | _]
-export type toBRC<L, R> = Filter<[L     , toV<R>], '-r'>; // [L | _, R    ]
-export type toBBC<L, R> = toLBC<L, R> | toBRC<L, R>
+export type ToLBC<L, R> = Filter<[ToV<L>, R     ], 'l-'>; // [L    , R | _]
+export type ToBRC<L, R> = Filter<[L     , ToV<R>], '-r'>; // [L | _, R    ]
+export type ToBBC<L, R> = ToLBC<L, R> | ToBRC<L, R>
 
 // EXPANDED
-export type toLNE<L, R> = toLNA<L, R>;
-export type toNRE<L, R> = toNRA<L, R>;
-export type toLRE<L, R> = toLRA<L, R>;
+export type ToLNE<L, R> = ToLNA<L, R>;
+export type ToNRE<L, R> = ToNRA<L, R>;
+export type ToLRE<L, R> = ToLRA<L, R>;
 
-export type toLBE<L, R> = toLBA<L, R> | toLBC<L, R>;
-export type toBRE<L, R> = toBRA<L, R> | toBRC<L, R>;
-export type toBBE<L, R> = toBBA<L, R> | toBBC<L, R>;
+export type ToLBE<L, R> = ToLBA<L, R> | ToLBC<L, R>;
+export type ToBRE<L, R> = ToBRA<L, R> | ToBRC<L, R>;
+export type ToBBE<L, R> = ToBBA<L, R> | ToBBC<L, R>;
 
 
 

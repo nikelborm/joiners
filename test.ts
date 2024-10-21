@@ -21,6 +21,12 @@ import type {
   RightJoin
 } from './types';
 
+// Allows reordering of values, but still requires all values
+// (even duplicates) to be present in the same amount as before
+const ignoreOrder = <T>(iterable: Iterable<T>) => new Set(
+  Array.from(iterable, v => [ v ] as [ T ])
+);
+
 function getJoinNamesBy<Mask>(
   bitmask: (eulerDiagramParts: EulerDiagramPartsCombinations) => boolean
 ) {
@@ -69,29 +75,29 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
     ) {
       const expectations = [
         {
-          a: { status: 'empty ', value: []},
-          b: { status: 'empty ', value: []},
+          a: { status: 'empty ', value: [] },
+          b: { status: 'empty ', value: [] },
           resultDataset: []
         },
         {
-          a: { status: 'empty ', value: []},
-          b: { status: 'filled', value: datasets.b},
+          a: { status: 'empty ', value: [] },
+          b: { status: 'filled', value: datasets.b },
           resultDataset: Array.from(
             joinsProducingNRAs.has(joinName) ? datasets.b : [],
             e => merge([_, e])
           )
         },
         {
-          a: { status: 'filled', value: datasets.a},
-          b: { status: 'empty ', value: []},
+          a: { status: 'filled', value: datasets.a },
+          b: { status: 'empty ', value: [] },
           resultDataset: Array.from(
             joinsProducingLNAs.has(joinName) ? datasets.a : [],
             e => merge([e, _])
           )
         },
         {
-          a: { status: 'filled', value: datasets.a},
-          b: { status: 'filled', value: datasets.b},
+          a: { status: 'filled', value: datasets.a },
+          b: { status: 'filled', value: datasets.b },
           resultDataset: joinResultForBothFilledDatasets[joinName]
         }
       ] as const;
@@ -100,17 +106,15 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
         test(
           `${capitalize(a.status)} A ${noCase(joinName).padEnd(15)} ${b.status} B`,
           () => {
-            const getJoinResult = () => joinName === 'crossJoin'
-              ? join(a.value, b.value, joinName, merge)
-              // @ts-expect-error My dear typescript, I'm sorry, you're
-              // absolutely right that "Argument EulerDiagramParts of
-              // Joiner<...> accepts only single string literal (literal
-              // union is forbidden)."
-              : join(a.value, b.value, joinName, merge, passesJoinCondition);
+            const getJoinResult = () => join(
+              a.value,
+              b.value,
+              // @ts-expect-error it's expected of ts reporting an error related to joinName being too wide
+              joinName,
+              merge,
+              joinName === 'crossJoin' ? void 0 : passesJoinCondition
+            );
 
-            // Allow reordering of values, but all values even if
-            // duplicated  should be present in the same amount as before
-            const ignoreOrder = <T>(iterable: Iterable<T>) => new Set(Array.from(iterable, v => [ v ] as [ T ]));
             const initialResult = ignoreOrder(getJoinResult());
 
             // test for correctness of the result
