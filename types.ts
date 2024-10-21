@@ -1,4 +1,4 @@
-import type { _, joinNameToEulerDiagramParts } from './constants';
+import type { _, joinNameToEulerDiagramParts, joinNameToEulerDiagramPartsWithoutAliases } from './constants';
 
 export type _ = typeof _;
 
@@ -291,3 +291,4 @@ export type SimpleJoin    <L, R, Detailing extends DetailingModifier> = InnerJoi
 export type CrossJoin     <L, R, Detailing extends DetailingModifier> = InnerJoin         <L, R, Detailing>;
 
 export type AllJoinNames = keyof typeof joinNameToEulerDiagramParts;
+export type AllJoinNamesWithoutAliases = keyof typeof joinNameToEulerDiagramPartsWithoutAliases;

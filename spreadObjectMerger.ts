@@ -1,5 +1,7 @@
 // TODO: When I'll finish this shit, post it to https://github.com/type-challenges/type-challenges
+// TODO: Also replace bad Merge implementation in https://github.com/sindresorhus/type-fest/blob/main/source/merge.d.ts with a new one made by me
 
+// import type {Merge as MagicGeneric} from 'type-fest';
 import { At as GetNthCharacter } from 'ts-toolbelt/out/String/At';
 import { Equals, assert } from 'tsafe';
 import { BBA, ForbiddenLiteralUnion, LNA, NRA } from './types';

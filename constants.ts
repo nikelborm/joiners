@@ -1,3 +1,5 @@
+import type { AllJoinNames, AllJoinNamesWithoutAliases } from './types';
+
 export const _ = Symbol('_');
 
 export const joinNameToEulerDiagramPartsWithoutAliases = Object.freeze({
@@ -29,3 +31,11 @@ export const joinNameToEulerDiagramParts = Object.freeze({
   fullExclusiveJoin      : '101',
   fullJoinExcludingInner : '101',
 } as const);
+
+export const joinNamesWithoutAliases = [
+  ...Object.keys(joinNameToEulerDiagramPartsWithoutAliases)
+] as readonly AllJoinNamesWithoutAliases[];
+
+export const joinNames = [
+  ...Object.keys(joinNameToEulerDiagramParts)
+] as readonly AllJoinNames[];
