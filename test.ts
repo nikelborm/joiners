@@ -48,7 +48,7 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
   suiteName: string,
   passesJoinCondition: (tuple: LRA<L, R>) => boolean,
   merge: (tuple: BBA<L, R>) => MergeResult,
-  datasetGenerator: () => {
+  { a, b }: {
     a: Iterable<L>,
     b: Iterable<R>,
   },
@@ -57,8 +57,6 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
     Iterable<NoInfer<MergeResult>>
   >
 ) => {
-  const datasets = datasetGenerator();
-
   // Joins returning LNA for every row of A and no other rows
   // when to filled A was joined empty B
   const joinsProducingLNAs =
@@ -81,23 +79,23 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
         },
         {
           a: { status: 'empty ', value: [] },
-          b: { status: 'filled', value: datasets.b },
+          b: { status: 'filled', value: b },
           resultDataset: Array.from(
-            joinsProducingNRAs.has(joinName) ? datasets.b : [],
+            joinsProducingNRAs.has(joinName) ? b : [],
             e => merge([_, e])
           )
         },
         {
-          a: { status: 'filled', value: datasets.a },
+          a: { status: 'filled', value: a },
           b: { status: 'empty ', value: [] },
           resultDataset: Array.from(
-            joinsProducingLNAs.has(joinName) ? datasets.a : [],
+            joinsProducingLNAs.has(joinName) ? a : [],
             e => merge([e, _])
           )
         },
         {
-          a: { status: 'filled', value: datasets.a },
-          b: { status: 'filled', value: datasets.b },
+          a: { status: 'filled', value: a },
+          b: { status: 'filled', value: b },
           resultDataset: joinResultForBothFilledDatasets[joinName]
         }
       ] as const;
@@ -156,7 +154,7 @@ testSuiteForAllJoins(
   'Tests for mock db rows',
   ([l, r]) => l.v === r.v,
   e => e,
-  () => ({ a: new Set(A), b: new Set(B) }),
+  ({ a: new Set(A), b: new Set(B) }),
   {
     'leftJoin': [
       [ Aid1, _    ],
@@ -249,7 +247,7 @@ testSuiteForAllJoins(
   'Tests for 2 intersecting arrays of numbers',
   ([l, r]) => l === r,
   e => e,
-  () => ({
+  ({
     a: [6, 6, 7, 7, 9] as const,
     b: [7, 7, 8, 8, 10] as const,
   }),
