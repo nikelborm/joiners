@@ -23,3 +23,4 @@ c; npm test
 8. remove never used stuff
 9. Recursive `spreadObjectMerger`, which also merges nested objects
 10. Joiner using indicies
+11. check how joiner alignes with [edgedb-js](https://github.com/edgedb/edgedb-js)
