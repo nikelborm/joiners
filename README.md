@@ -24,3 +24,4 @@ c; npm test
 9. Recursive `spreadObjectMerger`, which also merges nested objects
 10. Joiner using indicies
 11. check how joiner alignes with [edgedb-js](https://github.com/edgedb/edgedb-js)
+12. https://www.geeksforgeeks.org/introduction-of-relational-algebra-in-dbms/
