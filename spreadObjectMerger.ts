@@ -28,8 +28,8 @@ export const getSpreadObjectMerger = <
   const AHasPriority = doesAHavePriority(mergeStrategy)
 
   return {
-    ...(tuple[~~AHasPriority] as object),
-    ...(tuple[~~!AHasPriority] as object)
+    ...(tuple[+AHasPriority] as object),
+    ...(tuple[+!AHasPriority] as object)
   } as (
     T extends NRA<never, infer B>
     ? B

@@ -13,7 +13,7 @@ c; npm test
 
 ## TODO
 
-1. Ability to deduplicate entries on keyGenerator with ability to choose what to do with with duplcates where 1|2 slots are empty
+1. Ability to deduplicate entries on keyGenerator with ability to choose what to do with with duplicates where 1|2 slots are empty
 2. Context Expander merger where entries of expandable context are accessible by Symbols and not string names
 3. Pre-made join functions like `leftJoin(...)`
 4. pipeline joiner which accepts multiple datasets and sequential instruction on how to join them. Pipeline types from [nikelborm/autism-stats/index.ts](https://github.com/nikelborm/autism-stats/blob/main/index.ts), allows to make multiple joins on them, can be used as a part of queryBuilder. Or integrate Integrate codegen from [ksxnodemodules/ts-pipe-compose](https://github.com/ksxnodemodules/ts-pipe-compose)
@@ -22,6 +22,7 @@ c; npm test
 7. ability to get generator on discarded values `not(...)`
 8. remove never used stuff
 9. Recursive `spreadObjectMerger`, which also merges nested objects
-10. Joiner using indicies
-11. check how joiner alignes with [edgedb-js](https://github.com/edgedb/edgedb-js)
+10. Joiner using indices
+11. check how joiner aligns with [edgedb-js](https://github.com/edgedb/edgedb-js)
 12. https://www.geeksforgeeks.org/introduction-of-relational-algebra-in-dbms/
+13. https://github.com/dexie/Dexie.js/
