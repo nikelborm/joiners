@@ -26,3 +26,4 @@ c; npm test
 11. check how joiner aligns with [edgedb-js](https://github.com/edgedb/edgedb-js)
 12. https://www.geeksforgeeks.org/introduction-of-relational-algebra-in-dbms/
 13. https://github.com/dexie/Dexie.js/
+14. probably add parameter "trust order consistency", that will skip allocating inner array, and use iterator of iterable as is. Also, we can make assumptions about this consistency for example using for example `instanceof Array` check
