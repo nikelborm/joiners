@@ -27,3 +27,4 @@ c; npm test
 12. https://www.geeksforgeeks.org/introduction-of-relational-algebra-in-dbms/
 13. https://github.com/dexie/Dexie.js/
 14. probably add parameter "trust order consistency", that will skip allocating inner array, and use iterator of iterable as is. Also, we can make assumptions about this consistency for example using for example `instanceof Array` check
+15. add tests with empty objects to object merger <!-- https://t.me/Alexandroppolus написал в https://t.me/typescript_bowl/56?comment=244 В типе для мержа надо ещё не забыть проверить флаг exactOptionalPropertyTypes, если он не true, то с необязательных ключей может прилетать undefined: `type IsEOPT = [undefined] extends [1?] ? false : true;` -->
