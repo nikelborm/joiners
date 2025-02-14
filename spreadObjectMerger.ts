@@ -21,15 +21,17 @@ export const getSpreadObjectMerger = <
 >(
   mergeStrategy: MergeStrategy
 ) => <
-  const T extends BBA<unknown, unknown>
+  const T extends BBA<Object, Object>
 >(
   tuple: T
 ) => {
   const AHasPriority = doesAHavePriority(mergeStrategy)
+  type TupleIndex = 0 | 1;
+  const castToObject = (index: TupleIndex) => typeof (tuple[index]) === 'symbol' ? {} : tuple[index];
 
   return {
-    ...(tuple[+AHasPriority] as object),
-    ...(tuple[+!AHasPriority] as object)
+    ...castToObject(+AHasPriority  as TupleIndex),
+    ...castToObject(+!AHasPriority as TupleIndex)
   } as (
     T extends NRA<never, infer B>
     ? B
@@ -43,7 +45,7 @@ export const getSpreadObjectMerger = <
         ? MagicGeneric<B, A>
         : ForbiddenLiteralUnion<'MergeStrategy', 'getSpreadObjectMerger'>
     )
-    : `getSpreadObjectMerger(\'${MergeStrategy}\') function received invalid tuple type as an argument`
+    : `getSpreadObjectMerger('${MergeStrategy}') function received invalid tuple type as an argument`
   )
 }
 
@@ -72,9 +74,16 @@ type MagicGenericMergedBodyForCommonKey<
     | PreserveUndefinedOnlyIfWasExplicit<L, Key>
 ;
 
-type OptionalKeyof<T> = Exclude<{
-  [Key in keyof T]: T extends Record<Key, T[Key]> ? never : Key;
-}[keyof T], undefined>;
+type OptionalKeyof<T> = Exclude<
+  {
+    [Key in keyof T]: (
+      T extends Record<Key, T[Key]>
+        ? never
+        : Key
+    );
+  }[keyof T],
+  undefined
+>;
 
 type BothOptionalKeys<L, R> = OptionalKeyof<L> & OptionalKeyof<R>;
 
@@ -98,6 +107,8 @@ type MagicGeneric<L, R /* R has higher priority */> = {
 //!   "exactOptionalPropertyTypes": true,
 //!   "strictNullChecks": true
 //! }
+
+// TODO: move spreadObjectMerger tests to a different file
 
 // Merge Candidates                     => Merge Results
 // [{              }, {              }] => {              }
