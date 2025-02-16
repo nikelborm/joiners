@@ -39,3 +39,17 @@ export const joinNamesWithoutAliases = [
 export const joinNames = [
   ...Object.keys(joinNameToEulerDiagramParts)
 ] as readonly AllJoinNames[];
+
+
+// These are not magic numbers. They intuitively show which parts of 2
+// intersecting circles (Venn diagram) can be used.
+//         _______ _______         |
+//        /      / \      \        | 4 = 0b100 (1 bit is on the left side)
+//       |   4  | 2 |  1   |       | 2 = 0b010 (1 bit is on the middle)
+//        \      \ /      /        | 1 = 0b001 (1 bit is on the right side)
+//         ------- -------         |
+export const ShouldAdd = {
+  LeftExclusivePart  : 0b100,
+  InnerPart          : 0b010,
+  RightExclusivePart : 0b001,
+} as const
