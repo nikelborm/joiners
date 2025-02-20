@@ -2,7 +2,7 @@ import type { AllJoinNames, AllJoinNamesWithoutAliases } from './types';
 
 export const _ = Symbol('_');
 
-export const joinNameToEulerDiagramPartsWithoutAliases = Object.freeze({
+export const joinNameToVennDiagramPartsWithoutAliases = Object.freeze({
   leftJoin     : '110',
   rightJoin    : '011',
   fullJoin     : '111',
@@ -13,8 +13,8 @@ export const joinNameToEulerDiagramPartsWithoutAliases = Object.freeze({
   fullAntiJoin : '101',
 } as const);
 
-export const joinNameToEulerDiagramParts = Object.freeze({
-  ...joinNameToEulerDiagramPartsWithoutAliases,
+export const joinNameToVennDiagramParts = Object.freeze({
+  ...joinNameToVennDiagramPartsWithoutAliases,
   leftOuterJoin     : '110',
   rightOuterJoin    : '011',
   fullOuterJoin     : '111',
@@ -33,11 +33,11 @@ export const joinNameToEulerDiagramParts = Object.freeze({
 } as const);
 
 export const joinNamesWithoutAliases = [
-  ...Object.keys(joinNameToEulerDiagramPartsWithoutAliases)
+  ...Object.keys(joinNameToVennDiagramPartsWithoutAliases),
 ] as readonly AllJoinNamesWithoutAliases[];
 
 export const joinNames = [
-  ...Object.keys(joinNameToEulerDiagramParts)
+  ...Object.keys(joinNameToVennDiagramParts),
 ] as readonly AllJoinNames[];
 
 

@@ -1,6 +1,8 @@
-import type { _, joinNameToEulerDiagramParts, joinNameToEulerDiagramPartsWithoutAliases } from './constants';
+import type { _, joinNameToVennDiagramParts, joinNameToVennDiagramPartsWithoutAliases } from './constants';
 
 export type _ = typeof _;
+
+// TODO: define errors as unique symbol consts and return them from generic
 
 export type Prettify<T> = { [P in keyof T]: T[P] } & {};
 export type UnSet<T> = T extends Set<infer U> ? U : never;
@@ -35,9 +37,9 @@ export type RightTupleStructureCodePart = 'N' | 'R' | 'B';
 export type DetailingModifier = 'A' | 'C' | 'E';
 // A - Atomic. Union of distributed LR tuple types. Distributed means that
 // in each of the two slots of LR tuple there will be no unions of _
-// (emptyness) and value (L or R, depending on the position inside a tuple)
+// (emptiness) and value (L or R, depending on the position inside a tuple)
 // C - Compacted. The most high order representation of the combination of
-// atoms. Slots inside the tuple are unions of emptyness and value.
+// atoms. Slots inside the tuple are unions of emptiness and value.
 // E - Expanded. A union of all possible representations of LR tuple, the
 // union of both Atomic and Expanded types.
 
@@ -103,7 +105,7 @@ export type ToLNA<L, R> = Filter<[ToV<L>, To_<R>], 'lr'>; // [L, _]
 export type ToNRA<L, R> = Filter<[To_<L>, ToV<R>], 'lr'>; // [_, R]
 export type ToLRA<L, R> = Filter<[ToV<L>, ToV<R>], 'lr'>; // [L, R]
 
-// To better understand aToms with letter B in code, see according compact
+// To better understand atoms with letter B in code, see according compact
 export type ToLBA<L, R> = ToLNA<L, R> | ToLRA<L, R>;
 export type ToBRA<L, R> = ToNRA<L, R> | ToLRA<L, R>;
 export type ToBBA<L, R> = ToLNA<L, R> | ToNRA<L, R> | ToLRA<L, R>;
@@ -139,7 +141,7 @@ export type ShouldAddLeftExclusivePart = '0' | '1';
 export type ShouldAddInnerPart = '0' | '1';
 export type ShouldAddRightExclusivePart = '0' | '1';
 
-export type EulerDiagramPartsCombinations =
+export type VennDiagramPartsCombinations =
   Exclude<`${
     ShouldAddLeftExclusivePart
   }${
@@ -152,20 +154,20 @@ export type EulerDiagramPartsCombinations =
 
 
 export type TupleStructureCodeBy<
-  EulerDiagramParts extends EulerDiagramPartsCombinations
+  VennDiagramParts extends VennDiagramPartsCombinations
 > =
-  [EulerDiagramParts] extends ['001'] ? 'NR' : // right join excluding inner
-  [EulerDiagramParts] extends ['010'] ? 'LR' : // inner join
-  [EulerDiagramParts] extends ['011'] ? 'BR' : // right outer join (right join)
-  [EulerDiagramParts] extends ['100'] ? 'LN' : // left join excluding inner
-  [EulerDiagramParts] extends ['101'] ? 'LN' | 'NR' : // full outer join excluding inner
-  [EulerDiagramParts] extends ['110'] ? 'LB' : // left outer join (left join)
-  [EulerDiagramParts] extends ['111'] ? 'BB' : // full outer join (full join)
-  ForbiddenLiteralUnion<'EulerDiagramParts', 'TupleStructureCodeBy'>
+  [VennDiagramParts] extends ['001'] ? 'NR' : // right join excluding inner
+  [VennDiagramParts] extends ['010'] ? 'LR' : // inner join
+  [VennDiagramParts] extends ['011'] ? 'BR' : // right outer join (right join)
+  [VennDiagramParts] extends ['100'] ? 'LN' : // left join excluding inner
+  [VennDiagramParts] extends ['101'] ? 'LN' | 'NR' : // full outer join excluding inner
+  [VennDiagramParts] extends ['110'] ? 'LB' : // left outer join (left join)
+  [VennDiagramParts] extends ['111'] ? 'BB' : // full outer join (full join)
+  ForbiddenLiteralUnion<'VennDiagramParts', 'TupleStructureCodeBy'>
 ;
 
 export type TupleStructureCodeAcceptingUnionBy<
-  EulerDiagramPartsUnion extends EulerDiagramPartsCombinations
+  VennDiagramPartsUnion extends VennDiagramPartsCombinations
 > =
   {
     '001': 'NR';
@@ -175,7 +177,7 @@ export type TupleStructureCodeAcceptingUnionBy<
     '101': 'LN' | 'NR';
     '110': 'LB';
     '111': 'BB';
-  }[EulerDiagramPartsUnion]
+  }[VennDiagramPartsUnion]
 ;
 
 export type TupleStructureCode = Exclude<
@@ -184,7 +186,7 @@ export type TupleStructureCode = Exclude<
 >;
 // excluding NN, NB (== NN | NR) and BN (== NN | LN) doesn't mean there
 // will be no nulls as values in the result. It means that merge function
-// will never get EMPTYNESS (unique symbol stored in constant named "_") in
+// will never get EMPTINESS (unique symbol stored in constant named "_") in
 // both left and right slot, because such merge is impossible
 
 export type TupleStructureCodeToDetailingModifierCombinations =
@@ -244,19 +246,19 @@ export type SelectJoinedTuplesAcceptUnion<
 
 
 
-export type JoinOnEulerDiagramParts<
+export type JoinOnVennDiagramParts<
   L,
   R,
-  EulerDiagramParts extends EulerDiagramPartsCombinations,
+  VennDiagramParts extends VennDiagramPartsCombinations,
   Detailing extends DetailingModifier,
 > =
   // TupleStructureCodeBy can return string literal describing the error
-  // (thrown when EulerDiagramParts consists of union like "001" | "010"
+  // (thrown when VennDiagramParts consists of union like "001" | "010"
   // instead of single string literal like "010") and for that `extends
   // TupleStructureCode` was added.
-  TupleStructureCodeBy<EulerDiagramParts> extends infer U extends TupleStructureCode
+  TupleStructureCodeBy<VennDiagramParts> extends infer U extends TupleStructureCode
     ? SelectJoinedTuplesAcceptUnion<L, R, `${U}${Detailing}`>
-    : ForbiddenLiteralUnion<'EulerDiagramParts', 'Joiner'>
+    : ForbiddenLiteralUnion<'VennDiagramParts', 'Joiner'>
 ;
 
 
@@ -265,22 +267,22 @@ export type JoinOnJoinName<
   R,
   JoinName extends AllJoinNames,
   Detailing extends DetailingModifier,
-> = JoinOnEulerDiagramParts<
+> = JoinOnVennDiagramParts<
   L,
   R,
-  typeof joinNameToEulerDiagramParts[JoinName],
+  typeof joinNameToVennDiagramParts[JoinName],
   Detailing
 >;
 
 
 
-export type LeftExclusiveJoin <L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '100', Detailing>;
-export type InnerJoin         <L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '010', Detailing>;
-export type RightExclusiveJoin<L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '001', Detailing>;
-export type LeftJoin          <L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '110', Detailing>;
-export type RightJoin         <L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '011', Detailing>;
-export type FullJoin          <L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '111', Detailing>;
-export type FullExclusiveJoin <L, R, Detailing extends DetailingModifier> = JoinOnEulerDiagramParts<L, R, '101', Detailing>;
+export type LeftExclusiveJoin <L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '100', Detailing>;
+export type InnerJoin         <L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '010', Detailing>;
+export type RightExclusiveJoin<L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '001', Detailing>;
+export type LeftJoin          <L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '110', Detailing>;
+export type RightJoin         <L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '011', Detailing>;
+export type FullJoin          <L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '111', Detailing>;
+export type FullExclusiveJoin <L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '101', Detailing>;
 
 export type LeftOuterJoin <L, R, Detailing extends DetailingModifier> = LeftJoin          <L, R, Detailing>;
 export type RightOuterJoin<L, R, Detailing extends DetailingModifier> = RightJoin         <L, R, Detailing>;
@@ -292,5 +294,6 @@ export type Join          <L, R, Detailing extends DetailingModifier> = InnerJoi
 export type SimpleJoin    <L, R, Detailing extends DetailingModifier> = InnerJoin         <L, R, Detailing>;
 export type CrossJoin     <L, R, Detailing extends DetailingModifier> = InnerJoin         <L, R, Detailing>;
 
-export type AllJoinNames = keyof typeof joinNameToEulerDiagramParts;
-export type AllJoinNamesWithoutAliases = keyof typeof joinNameToEulerDiagramPartsWithoutAliases;
+export type AllJoinNames = keyof typeof joinNameToVennDiagramParts;
+export type AllJoinNamesWithoutAliases =
+  keyof typeof joinNameToVennDiagramPartsWithoutAliases;
