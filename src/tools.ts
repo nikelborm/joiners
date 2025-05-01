@@ -3,7 +3,7 @@ import test, { describe } from 'node:test';
 
 const invertBits = (x: number) => 7 - x;
 
-describe('invert', t => {
+describe('invert', () => {
   for (const [param, expected] of [
     [0b000, 0b111],
     [0b001, 0b110],

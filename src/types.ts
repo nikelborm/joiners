@@ -1,6 +1,4 @@
-import type { _, joinNameToVennDiagramParts, joinNameToVennDiagramPartsWithoutAliases } from './constants';
-
-export type _ = typeof _;
+import type { _, joinNameToVennDiagramParts, joinNameToVennDiagramPartsWithoutAliases } from './constants.ts';
 
 // TODO: define errors as unique symbol consts and return them from generic
 

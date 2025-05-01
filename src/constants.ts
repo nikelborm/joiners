@@ -1,6 +1,7 @@
-import type { AllJoinNames, AllJoinNamesWithoutAliases } from './types';
+import type { AllJoinNames, AllJoinNamesWithoutAliases } from './types.ts';
 
 export const _ = Symbol('_');
+export type _ = typeof _;
 
 export const joinNameToVennDiagramPartsWithoutAliases = Object.freeze({
   leftJoin     : '110',

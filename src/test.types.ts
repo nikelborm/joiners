@@ -1,4 +1,4 @@
-import { Equals, assert } from 'tsafe';
+import { type Equals, assert } from 'tsafe';
 import type {
   FullExclusiveJoin,
   FullJoin,
@@ -7,8 +7,8 @@ import type {
   LeftJoin,
   RightExclusiveJoin,
   RightJoin,
-  _
-} from './types';
+} from './types.ts';
+import type { _ } from './constants.ts';
 
 const A = Symbol('A');
 const B = Symbol('B');

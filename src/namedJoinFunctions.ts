@@ -1,6 +1,6 @@
-import { objectKeys } from 'tsafe';
-import { joinNameToVennDiagramParts } from './constants';
-import { AllJoinNames } from 'types';
+// import { objectKeys } from 'tsafe';
+// import { joinNameToVennDiagramParts } from './constants.ts';
+import type { AllJoinNames } from './types.ts';
 
 export const { asd, saddd } = { asd: 'asd', saddd: 'qewe' } as const;
 

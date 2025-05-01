@@ -1,5 +1,6 @@
-import { _ } from './constants';
-import { BBA, ToV, To_ } from './types';
+import { _ } from './constants.ts';
+
+import type { BBA, ToV, To_ } from './types.ts';
 
 export function isEmpty<T>(v: T): v is To_<T> {
   return v === _;

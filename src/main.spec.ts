@@ -7,8 +7,8 @@ import {
   _,
   joinNameToVennDiagramParts,
   joinNameToVennDiagramPartsWithoutAliases,
-} from './constants';
-import { join } from './joinOnJoinName';
+} from './constants.ts';
+import { join } from './joinOnJoinName.ts';
 import type {
   AllJoinNames,
   BBA,
@@ -23,8 +23,8 @@ import type {
   Prettify,
   RightAntiJoin,
   RightJoin,
-} from './types';
-import { getShufflingIterable } from './getShufflingIterable';
+} from './types.ts';
+import { getShufflingIterable } from './getShufflingIterable.ts';
 
 function getJoinNamesBy<Mask>(
   bitmask: (vennDiagramParts: VennDiagramPartsCombinations) => boolean,

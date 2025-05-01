@@ -1,10 +1,10 @@
-import { _, ShouldAdd } from './constants';
-import {
+import { _, ShouldAdd } from './constants.ts';
+import type {
   DetailingModifier,
   VennDiagramPartsCombinations,
   JoinOnVennDiagramParts,
   LRA,
-} from './types';
+} from './types.ts';
 
 export function buildJoinerOnVennDiagramPartsWithCustomDetailingModifier<
   Detailing extends DetailingModifier = 'A',

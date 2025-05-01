@@ -1,7 +1,6 @@
-import '@total-typescript/ts-reset';
-import { join } from './joinOnJoinName';
-import { joinOnVennDiagramParts } from './joinOnVennDiagramParts';
-import {} from './namedJoinFunctions';
+import { join } from './joinOnJoinName.ts';
+import { joinOnVennDiagramParts } from './joinOnVennDiagramParts.ts';
+import {} from './namedJoinFunctions.ts';
 
 const brandA = Symbol('A');
 const brandB = Symbol('B');

@@ -2,3 +2,5 @@ types.ts
 test.types.ts
 constants.ts
 spreadObjectMerger.ts
+spreadObjectMerger.spec.ts
+PreserveUndefinedOnlyIfWasExplicit.spec.ts

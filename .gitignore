@@ -2,3 +2,13 @@ node_modules
 dist
 bun.lockb
 package-lock.json
+.env
+tmp
+temp.json
+stats.html
+scratchpad.ts
+destination
+docker
+_
+joiner-*
+/gh-page/coverage

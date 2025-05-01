@@ -1,6 +1,11 @@
-import { joinNameToVennDiagramParts } from './constants';
-import { joinOnVennDiagramParts } from './joinOnVennDiagramParts';
-import { AllJoinNames, DetailingModifier, JoinOnJoinName, LRA } from './types';
+import { joinNameToVennDiagramParts } from './constants.ts';
+import { joinOnVennDiagramParts } from './joinOnVennDiagramParts.ts';
+import type {
+  AllJoinNames,
+  DetailingModifier,
+  JoinOnJoinName,
+  LRA,
+} from './types.ts';
 
 export function buildJoinerOnJoinNameWithCustomDetailingModifier<
   Detailing extends DetailingModifier = 'A',
