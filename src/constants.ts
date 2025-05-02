@@ -1,8 +1,17 @@
-import type { AllJoinNames, AllJoinNamesWithoutAliases } from './types.ts';
+import { objectKeys } from 'tsafe';
 
-export const _ = Symbol('_');
+/**
+ * A symbol representing an empty slot similar to how an actual SQL query
+ * executor will put NULL on the exclusive left or right sides of the join
+ */
+export const _ = Symbol('Empty slot');
 export type _ = typeof _;
 
+/**
+ * An object with join names (without aliases) as keys, and according venn
+ * diagram bit-masks as values (see
+ * {@link VennDiagramBitMaskFor|Venn diagram bit mask enum}).
+ */
 export const joinNameToVennDiagramPartsWithoutAliases = Object.freeze({
   leftJoin     : '110',
   rightJoin    : '011',
@@ -14,6 +23,10 @@ export const joinNameToVennDiagramPartsWithoutAliases = Object.freeze({
   fullAntiJoin : '101',
 } as const);
 
+/**
+ * An object with join names  as keys, and according venn diagram bit-masks as
+ * values (see {@link VennDiagramBitMaskFor|Venn diagram bit mask enum}).
+ */
 export const joinNameToVennDiagramParts = Object.freeze({
   ...joinNameToVennDiagramPartsWithoutAliases,
   leftOuterJoin     : '110',
@@ -33,23 +46,33 @@ export const joinNameToVennDiagramParts = Object.freeze({
   fullJoinExcludingInner : '101',
 } as const);
 
-export const joinNamesWithoutAliases = [
-  ...Object.keys(joinNameToVennDiagramPartsWithoutAliases),
-] as readonly AllJoinNamesWithoutAliases[];
+/**
+ * An array of supported join names without join aliases.
+ */
+export const joinNamesWithoutAliases = objectKeys(joinNameToVennDiagramPartsWithoutAliases);
 
-export const joinNames = [
-  ...Object.keys(joinNameToVennDiagramParts),
-] as readonly AllJoinNames[];
+/**
+ * An array of all supported join names including join aliases.
+ */
+export const joinNames = objectKeys(joinNameToVennDiagramParts);
 
-
-// These are not magic numbers. They intuitively show which parts of 2
-// intersecting circles (Venn diagram) can be used.
-//         _______ _______         |
-//        /      / \      \        | 4 = 0b100 (1 bit is on the left side)
-//       |   4  | 2 |  1   |       | 2 = 0b010 (1 bit is on the middle)
-//        \      \ /      /        | 1 = 0b001 (1 bit is on the right side)
-//         ------- -------         |
-export const ShouldAdd = {
+/**
+ * This enum has bit-masks to choose which subsets to yield as a result of
+ * joining 2 entity sets (iterables). Each of the 3 distinctive subsets of Venn
+ * diagram is represented by each bit. You can `|` (`or`) such masks to get
+ * combinations of resulting subsets.
+ *
+ * ```plaintext
+ *      .-"""-. .-"""-.     |
+ *    .'     .'‾'.     '.   |
+ *   /      /     \      \  | 4 = 0b100 (1 bit representing left outer part)
+ *   |   4  |  2  |  1   |  | 2 = 0b010 (1 bit representing middle inner part)
+ *   \      \     /      /  | 1 = 0b001 (1 bit representing right outer part)
+ *    '.     '. .'     .'   |
+ *      '-...-'‾'-...-'     |
+ * ```
+ */
+export const VennDiagramBitMaskFor = {
   LeftExclusivePart  : 0b100,
   InnerPart          : 0b010,
   RightExclusivePart : 0b001,

@@ -2,15 +2,15 @@ import { joinNameToVennDiagramParts } from './constants.ts';
 import { joinOnVennDiagramParts } from './joinOnVennDiagramParts.ts';
 import type {
   AllJoinNames,
-  DetailingModifier,
+  LevelOfDetailModifier,
   JoinOnJoinName,
   LRA,
 } from './types.ts';
 
 export function buildJoinerOnJoinNameWithCustomDetailingModifier<
-  Detailing extends DetailingModifier = 'A',
->(): JoinerOnJoinNameWithCustomDetailingModifier<Detailing> {
-  function __joinOnJoinName<
+  LevelOfDetail extends LevelOfDetailModifier = 'A',
+>(): JoinerOnJoinNameWithCustomDetailingModifier<LevelOfDetail> {
+  function joinOnJoinName<
     L,
     R,
     MergedResult,
@@ -19,7 +19,9 @@ export function buildJoinerOnJoinNameWithCustomDetailingModifier<
     left: Iterable<L>,
     right: Iterable<R>,
     joinName: JoinName,
-    merge: (tuple: JoinOnJoinName<L, R, JoinName, Detailing>) => MergedResult,
+    merge: (
+      tuple: JoinOnJoinName<L, R, JoinName, LevelOfDetail>,
+    ) => MergedResult,
     passesJoinCondition?: (tuple: LRA<L, R>) => boolean,
     trustElementsOrderConsistencyOfRightIterable?: boolean,
   ): Generator<MergedResult> {
@@ -38,7 +40,7 @@ export function buildJoinerOnJoinNameWithCustomDetailingModifier<
     );
   }
 
-  return __joinOnJoinName satisfies JoinerOnJoinNameWithCustomDetailingModifier<Detailing>;
+  return joinOnJoinName satisfies JoinerOnJoinNameWithCustomDetailingModifier<LevelOfDetail>;
 }
 
 export const joinWithAtomicMergeArgs =
@@ -51,7 +53,7 @@ export const joinWithExtendedMergeArgs =
 export const join = joinWithAtomicMergeArgs;
 
 export type CrossJoinerWithCustomDetailingModifier<
-  Detailing extends DetailingModifier,
+  Detailing extends LevelOfDetailModifier,
 > = <L, R, MergedResult, const JoinName extends 'crossJoin'>(
   left: Iterable<L>,
   right: Iterable<R>,
@@ -59,14 +61,11 @@ export type CrossJoinerWithCustomDetailingModifier<
   merge: (tuple: JoinOnJoinName<L, R, JoinName, Detailing>) => MergedResult,
 ) => Generator<MergedResult>;
 
+type AnyJoinNameExceptCrossJoin = Exclude<AllJoinNames, 'crossJoin'>;
+
 export type NonCrossJoinerWithCustomDetailingModifier<
-  Detailing extends DetailingModifier,
-> = <
-  L,
-  R,
-  MergedResult,
-  const JoinName extends Exclude<AllJoinNames, 'crossJoin'>,
->(
+  Detailing extends LevelOfDetailModifier,
+> = <L, R, MergedResult, const JoinName extends AnyJoinNameExceptCrossJoin>(
   left: Iterable<L>,
   right: Iterable<R>,
   joinName: JoinName,
@@ -76,6 +75,6 @@ export type NonCrossJoinerWithCustomDetailingModifier<
 ) => Generator<MergedResult>;
 
 export type JoinerOnJoinNameWithCustomDetailingModifier<
-  Detailing extends DetailingModifier,
+  Detailing extends LevelOfDetailModifier,
 > = NonCrossJoinerWithCustomDetailingModifier<Detailing> &
   CrossJoinerWithCustomDetailingModifier<Detailing>;

@@ -1,13 +1,13 @@
-import { _, ShouldAdd } from './constants.ts';
+import { _, VennDiagramBitMaskFor as ShouldAdd } from './constants.ts';
 import type {
-  DetailingModifier,
+  LevelOfDetailModifier,
   VennDiagramPartsCombinations,
   JoinOnVennDiagramParts,
   LRA,
 } from './types.ts';
 
 export function buildJoinerOnVennDiagramPartsWithCustomDetailingModifier<
-  Detailing extends DetailingModifier = 'A',
+  Detailing extends LevelOfDetailModifier = 'A',
 >() {
   return function* __joinOnVennDiagramParts<
     const VennDiagramParts extends VennDiagramPartsCombinations,

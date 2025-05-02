@@ -1,4 +1,6 @@
-export function getShuffledArrayFrom<T>(sourceArray: Array<T>) {
+export function getShuffledArrayFrom<ArrayElement>(
+  sourceArray: ArrayElement[],
+): ArrayElement[] {
   const resultArray = [...sourceArray];
   let currentIndex = resultArray.length;
 

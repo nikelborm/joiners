@@ -1,4 +1,4 @@
-import { getShuffledArrayFrom } from './getShuffledArrayFrom.ts';
+import { getShuffledArrayFrom } from './getShuffledArrayFrom.helper.spec.ts';
 
 export function getShufflingIterable<T>(
   notShuffledIterable: Iterable<T>,

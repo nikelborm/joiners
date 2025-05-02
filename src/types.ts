@@ -1,5 +1,10 @@
 import type { _, joinNameToVennDiagramParts, joinNameToVennDiagramPartsWithoutAliases } from './constants.ts';
 
+
+export type AllJoinNames = keyof typeof joinNameToVennDiagramParts;
+export type AllJoinNamesWithoutAliases =
+  keyof typeof joinNameToVennDiagramPartsWithoutAliases;
+
 // TODO: define errors as unique symbol consts and return them from generic
 
 export type Prettify<T> = { [P in keyof T]: T[P] } & {};
@@ -32,16 +37,36 @@ export type RightTupleStructureCodePart = 'N' | 'R' | 'B';
 // B - Both               . 2nd element of the tuple is (_ | R)
 
 // 3rd letter
-export type DetailingModifier = 'A' | 'C' | 'E';
-// A - Atomic. Union of distributed LR tuple types. Distributed means that
-// in each of the two slots of LR tuple there will be no unions of _
-// (emptiness) and value (L or R, depending on the position inside a tuple)
-// C - Compacted. The most high order representation of the combination of
-// atoms. Slots inside the tuple are unions of emptiness and value.
-// E - Expanded. A union of all possible representations of LR tuple, the
-// union of both Atomic and Expanded types.
 
-
+/**
+ * This union represents 3 possible characteristics that can describe a certain
+ * LR tuple. Each characteristic has a name and according short single letter
+ * version.
+ *
+ * **1. `A` stands for `Atomic`.**
+ *
+ * These types represent either a single primitive LR tuple (e.g. `[L, R]`, `[_,
+ * R]`, `[L, _]`) or a distributed union of them (e.g. `[L, R] | [_, R]`).
+ * Distributed means that in each of the two slots of LR tuple there will be no
+ * unions of _ (emptiness) and value (L or R, depending on the position inside a
+ * tuple). There will be either one or the other.
+ *
+ * **2. `C` stands for `Compact`.**
+ *
+ * These types try to be as dense as possible. They can be a result of combining
+ * atoms, but instead of being distributed, they try to pack unions of atomic LR
+ * tuples with different values at some slot into a single LR tuple with a union
+ * of different values at that slot. E.g. union of atoms `[L, R] | [_, R]` is
+ * represented by Compact tuple `[_ | L, R]`. Slot inside of a compact LR tuple
+ * will have either a union of emptiness and value, or something of those 2.
+ *
+ * **3. `E` stands for `Expanded`.**
+ *
+ * A union of all possible representations of LR tuple, the union of both Atomic
+ * and Expanded types.
+ *
+ */
+export type LevelOfDetailModifier = 'A' | 'C' | 'E';
 
 // ATOMS
 export type LNA<L, R> = [L, _];
@@ -188,7 +213,7 @@ export type TupleStructureCode = Exclude<
 // both left and right slot, because such merge is impossible
 
 export type TupleStructureCodeToDetailingModifierCombinations =
-  `${TupleStructureCode}${DetailingModifier}`;
+  `${TupleStructureCode}${LevelOfDetailModifier}`;
 
 
 export type SelectJoinedTuples<
@@ -248,7 +273,7 @@ export type JoinOnVennDiagramParts<
   L,
   R,
   VennDiagramParts extends VennDiagramPartsCombinations,
-  Detailing extends DetailingModifier,
+  Detailing extends LevelOfDetailModifier,
 > =
   // TupleStructureCodeBy can return string literal describing the error
   // (thrown when VennDiagramParts consists of union like "001" | "010"
@@ -264,34 +289,30 @@ export type JoinOnJoinName<
   L,
   R,
   JoinName extends AllJoinNames,
-  Detailing extends DetailingModifier,
+  LevelOfDetail extends LevelOfDetailModifier,
 > = JoinOnVennDiagramParts<
   L,
   R,
   typeof joinNameToVennDiagramParts[JoinName],
-  Detailing
+  LevelOfDetail
 >;
 
 
 
-export type LeftExclusiveJoin <L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '100', Detailing>;
-export type InnerJoin         <L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '010', Detailing>;
-export type RightExclusiveJoin<L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '001', Detailing>;
-export type LeftJoin          <L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '110', Detailing>;
-export type RightJoin         <L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '011', Detailing>;
-export type FullJoin          <L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '111', Detailing>;
-export type FullExclusiveJoin <L, R, Detailing extends DetailingModifier> = JoinOnVennDiagramParts<L, R, '101', Detailing>;
+export type LeftExclusiveJoin <L, R, Detailing extends LevelOfDetailModifier> = JoinOnVennDiagramParts<L, R, '100', Detailing>;
+export type InnerJoin         <L, R, Detailing extends LevelOfDetailModifier> = JoinOnVennDiagramParts<L, R, '010', Detailing>;
+export type RightExclusiveJoin<L, R, Detailing extends LevelOfDetailModifier> = JoinOnVennDiagramParts<L, R, '001', Detailing>;
+export type LeftJoin          <L, R, Detailing extends LevelOfDetailModifier> = JoinOnVennDiagramParts<L, R, '110', Detailing>;
+export type RightJoin         <L, R, Detailing extends LevelOfDetailModifier> = JoinOnVennDiagramParts<L, R, '011', Detailing>;
+export type FullJoin          <L, R, Detailing extends LevelOfDetailModifier> = JoinOnVennDiagramParts<L, R, '111', Detailing>;
+export type FullExclusiveJoin <L, R, Detailing extends LevelOfDetailModifier> = JoinOnVennDiagramParts<L, R, '101', Detailing>;
 
-export type LeftOuterJoin <L, R, Detailing extends DetailingModifier> = LeftJoin          <L, R, Detailing>;
-export type RightOuterJoin<L, R, Detailing extends DetailingModifier> = RightJoin         <L, R, Detailing>;
-export type FullOuterJoin <L, R, Detailing extends DetailingModifier> = FullJoin          <L, R, Detailing>;
-export type LeftAntiJoin  <L, R, Detailing extends DetailingModifier> = LeftExclusiveJoin <L, R, Detailing>;
-export type RightAntiJoin <L, R, Detailing extends DetailingModifier> = RightExclusiveJoin<L, R, Detailing>;
-export type FullAntiJoin  <L, R, Detailing extends DetailingModifier> = FullExclusiveJoin <L, R, Detailing>;
-export type Join          <L, R, Detailing extends DetailingModifier> = InnerJoin         <L, R, Detailing>;
-export type SimpleJoin    <L, R, Detailing extends DetailingModifier> = InnerJoin         <L, R, Detailing>;
-export type CrossJoin     <L, R, Detailing extends DetailingModifier> = InnerJoin         <L, R, Detailing>;
-
-export type AllJoinNames = keyof typeof joinNameToVennDiagramParts;
-export type AllJoinNamesWithoutAliases =
-  keyof typeof joinNameToVennDiagramPartsWithoutAliases;
+export type LeftOuterJoin <L, R, Detailing extends LevelOfDetailModifier> = LeftJoin          <L, R, Detailing>;
+export type RightOuterJoin<L, R, Detailing extends LevelOfDetailModifier> = RightJoin         <L, R, Detailing>;
+export type FullOuterJoin <L, R, Detailing extends LevelOfDetailModifier> = FullJoin          <L, R, Detailing>;
+export type LeftAntiJoin  <L, R, Detailing extends LevelOfDetailModifier> = LeftExclusiveJoin <L, R, Detailing>;
+export type RightAntiJoin <L, R, Detailing extends LevelOfDetailModifier> = RightExclusiveJoin<L, R, Detailing>;
+export type FullAntiJoin  <L, R, Detailing extends LevelOfDetailModifier> = FullExclusiveJoin <L, R, Detailing>;
+export type Join          <L, R, Detailing extends LevelOfDetailModifier> = InnerJoin         <L, R, Detailing>;
+export type SimpleJoin    <L, R, Detailing extends LevelOfDetailModifier> = InnerJoin         <L, R, Detailing>;
+export type CrossJoin     <L, R, Detailing extends LevelOfDetailModifier> = InnerJoin         <L, R, Detailing>;

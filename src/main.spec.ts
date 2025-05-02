@@ -1,7 +1,5 @@
-import '@total-typescript/ts-reset';
 import { noCase } from 'change-case';
-import { deepStrictEqual } from 'node:assert/strict';
-import test, { describe } from 'node:test';
+import { describe } from 'vitest';
 import { capitalize, objectEntries, objectKeys } from 'tsafe';
 import {
   _,
@@ -24,7 +22,7 @@ import type {
   RightAntiJoin,
   RightJoin,
 } from './types.ts';
-import { getShufflingIterable } from './getShufflingIterable.ts';
+import { getShufflingIterable } from './getShufflingIterable.helper.spec.ts';
 
 function getJoinNamesBy<Mask>(
   bitmask: (vennDiagramParts: VennDiagramPartsCombinations) => boolean,
@@ -75,18 +73,18 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
   // other rows
   const joinsProducingNRAs = getJoinNamesBy<`${string}1`>(e => e.endsWith('1'));
 
-  describe(suiteName, () => {
+  describe(suiteName, test => {
     for (const joinName of objectKeys(joinResultForBothFilledDatasets)) {
       const expectations = [
         {
           a: { status: 'empty', value: [] },
           b: { status: 'empty', value: [] },
-          resultDataset: [],
+          expectedResult: [],
         },
         {
           a: { status: 'empty', value: [] },
           b: { status: 'filled', value: b },
-          resultDataset: Array.from(
+          expectedResult: Array.from(
             joinsProducingNRAs.has(joinName) ? b : [],
             e => merge([_, e]),
           ),
@@ -94,7 +92,7 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
         {
           a: { status: 'filled', value: a },
           b: { status: 'empty', value: [] },
-          resultDataset: Array.from(
+          expectedResult: Array.from(
             joinsProducingLNAs.has(joinName) ? a : [],
             e => merge([e, _]),
           ),
@@ -102,11 +100,11 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
         {
           a: { status: 'filled', value: a },
           b: { status: 'filled', value: b },
-          resultDataset: joinResultForBothFilledDatasets[joinName],
+          expectedResult: joinResultForBothFilledDatasets[joinName],
         },
       ] as const;
 
-      for (const { a, b, resultDataset } of expectations)
+      for (const { a, b, expectedResult } of expectations)
         test(
           [
             /* 'Empty ' */ capitalize(a.status).padEnd(6),
@@ -116,7 +114,7 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
             /* 'filled' */ b.status.padEnd(6),
             'Array<B>',
           ].join(' '),
-          () => {
+          ctx => {
             const getJoinResult = () =>
               join(
                 a.value,
@@ -135,10 +133,14 @@ const testSuiteForAllJoins = <L, R, MergeResult>(
             const initialResult = toUnorderedSet(getJoinResult());
 
             // tests if result is correct
-            deepStrictEqual(initialResult, toUnorderedSet(resultDataset));
+            ctx
+              .expect(initialResult)
+              .toStrictEqual(toUnorderedSet(expectedResult));
 
             // tests if function execution is pure and has no side-effects
-            deepStrictEqual(toUnorderedSet(getJoinResult()), initialResult);
+            ctx
+              .expect(toUnorderedSet(getJoinResult()))
+              .toStrictEqual(initialResult);
           },
         );
     }

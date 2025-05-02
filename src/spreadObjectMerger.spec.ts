@@ -1,7 +1,4 @@
-import type { Equals } from 'tsafe';
-import * as assert from 'tsafe/assert.mjs';
-// import 
-// import { type Equals, assert } from 'tsafe/esm/in';
+import { type Equals, assert } from 'tsafe';
 
 import type { MagicGeneric } from './spreadObjectMerger.ts';
 
@@ -14,7 +11,7 @@ type Testcase1Result = MagicGeneric<
   { a?: string             },
   { a?: number             }
 >
-assert<Equals<Testcase1Result, { a?: string | number             }>>();
+assert<Equals<Testcase1Result, { a?: string | number             }>>
 //            ^?
 
 
@@ -26,7 +23,7 @@ type Testcase2Result = MagicGeneric<
   { a?: string             },
   { a : number             }
 >
-assert<Equals<Testcase2Result, { a : number                      }>>();
+assert<Equals<Testcase2Result, { a : number                      }>>
 //            ^?
 
 
@@ -38,7 +35,7 @@ type Testcase3Result = MagicGeneric<
   { a : string             },
   { a?: number             }
 >
-assert<Equals<Testcase3Result, { a : string | number             }>>();
+assert<Equals<Testcase3Result, { a : string | number             }>>
 //            ^?
 
 
@@ -49,7 +46,7 @@ type Testcase4Result = MagicGeneric<
   { a : string             },
   { a : number             }
 >
-assert<Equals<Testcase4Result, { a : number                      }>>();
+assert<Equals<Testcase4Result, { a : number                      }>>
 //            ^?
 
 
@@ -65,7 +62,7 @@ type Testcase5Result = MagicGeneric<
   { a?: string | undefined },
   { a?: number             }
 >
-assert<Equals<Testcase5Result, { a?: string | number | undefined }>>();
+assert<Equals<Testcase5Result, { a?: string | number | undefined }>>
 //            ^?
 
 
@@ -78,7 +75,7 @@ type Testcase6Result = MagicGeneric<
   { a?: string | undefined },
   { a : number             }
 >
-assert<Equals<Testcase6Result, { a : number                      }>>();
+assert<Equals<Testcase6Result, { a : number                      }>>
 //            ^?
 
 
@@ -92,7 +89,7 @@ type Testcase7Result = MagicGeneric<
   { a : string | undefined },
   { a?: number             }
 >
-assert<Equals<Testcase7Result, { a : string | number | undefined }>>();
+assert<Equals<Testcase7Result, { a : string | number | undefined }>>
 //            ^?
 
 
@@ -104,7 +101,7 @@ type Testcase8Result = MagicGeneric<
   { a : string | undefined },
   { a : number             }
 >
-assert<Equals<Testcase8Result, { a : number                      }>>();
+assert<Equals<Testcase8Result, { a : number                      }>>
 //            ^?
 
 
@@ -120,7 +117,7 @@ type Testcase9Result = MagicGeneric<
   { a?: string             },
   { a?: number | undefined }
 >
-assert<Equals<Testcase9Result, { a?: string | number | undefined }>>();
+assert<Equals<Testcase9Result, { a?: string | number | undefined }>>
 //            ^?
 
 
@@ -134,7 +131,7 @@ type Testcase10Result = MagicGeneric<
   { a?: string             },
   { a : number | undefined }
 >
-assert<Equals<Testcase10Result, { a : number | undefined          }>>();
+assert<Equals<Testcase10Result, { a : number | undefined          }>>
 //            ^?
 
 
@@ -147,7 +144,7 @@ type Testcase11Result = MagicGeneric<
   { a : string             },
   { a?: number | undefined }
 >
-assert<Equals<Testcase11Result, { a : string | number | undefined }>>();
+assert<Equals<Testcase11Result, { a : string | number | undefined }>>
 //            ^?
 
 
@@ -159,7 +156,7 @@ type Testcase12Result = MagicGeneric<
   { a : string             },
   { a : number | undefined }
 >
-assert<Equals<Testcase12Result, { a : number | undefined          }>>();
+assert<Equals<Testcase12Result, { a : number | undefined          }>>
 //            ^?
 
 
@@ -178,7 +175,7 @@ type Testcase13Result = MagicGeneric<
   { a?: string | undefined },
   { a?: number | undefined }
 >
-assert<Equals<Testcase13Result, { a?: string | number | undefined }>>();
+assert<Equals<Testcase13Result, { a?: string | number | undefined }>>
 //            ^?
 
 
@@ -194,7 +191,7 @@ type Testcase14Result = MagicGeneric<
   { a?: string | undefined },
   { a : number | undefined }
 >
-assert<Equals<Testcase14Result, { a : number | undefined          }>>();
+assert<Equals<Testcase14Result, { a : number | undefined          }>>
 //            ^?
 
 
@@ -210,7 +207,7 @@ type Testcase15Result = MagicGeneric<
   { a : string | undefined },
   { a?: number | undefined }
 >
-assert<Equals<Testcase15Result, { a : string | number | undefined }>>();
+assert<Equals<Testcase15Result, { a : string | number | undefined }>>
 //            ^?
 
 
@@ -224,5 +221,5 @@ type Testcase16Result = MagicGeneric<
   { a : string | undefined },
   { a : number | undefined }
 >
-assert<Equals<Testcase16Result, { a : number | undefined          }>>();
+assert<Equals<Testcase16Result, { a : number | undefined          }>>
 //            ^?
