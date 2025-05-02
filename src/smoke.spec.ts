@@ -1,3 +1,4 @@
+import { test } from 'vitest';
 import { join } from './joinOnJoinName.ts';
 import { joinOnVennDiagramParts } from './joinOnVennDiagramParts.ts';
 import {} from './namedJoinFunctions.ts';
@@ -45,24 +46,26 @@ const right = new Set<B1>([
   { brand: brandB, id: 5, v: 10, requiredColumnSpecificToTypeB: brandB, requiredColumnTypeAgnostic: brandB }
 ]);
 
-for (const iterator of join(
-  left,
-  right,
-  'crossJoin',
-  // (tuple) => ({...(tuple[0] as object), ...(tuple[0] as object)}) as ((typeof tuple)[0] & (typeof tuple)[0]),
-  asIsMerger,
-  // getSpreadObjectMerger('{ ...A, ...B }'),
-  // (tuple) => tuple[0].v === tuple[1].v
-)) {
-}
+test("whole thing doesn't crash", () => {
+  for (const iterator of join(
+    left,
+    right,
+    'crossJoin',
+    // (tuple) => ({...(tuple[0] as object), ...(tuple[0] as object)}) as ((typeof tuple)[0] & (typeof tuple)[0]),
+    asIsMerger,
+    // getSpreadObjectMerger('{ ...A, ...B }'),
+    // (tuple) => tuple[0].v === tuple[1].v
+  )) {
+  }
 
-for (const iterator of joinOnVennDiagramParts(
-  left,
-  right,
-  '110',
-  // (tuple) => ({...(tuple[0] as object), ...(tuple[0] as object)}) as ((typeof tuple)[0] & (typeof tuple)[0]),
-  asIsMerger,
-  // getSpreadObjectMerger('{ ...A, ...B }'),
-  tuple => tuple[0].v === tuple[1].v,
-)) {
-}
+  for (const iterator of joinOnVennDiagramParts(
+    left,
+    right,
+    '110',
+    // (tuple) => ({...(tuple[0] as object), ...(tuple[0] as object)}) as ((typeof tuple)[0] & (typeof tuple)[0]),
+    asIsMerger,
+    // getSpreadObjectMerger('{ ...A, ...B }'),
+    tuple => tuple[0].v === tuple[1].v,
+  )) {
+  }
+});

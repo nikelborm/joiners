@@ -12,7 +12,7 @@ describe('invertBitsOf3bitLongNumber', test => {
     [0b110, 0b001],
     [0b111, 0b000],
   ] as const) {
-    test(`invertBits(${param}) === ${expected}`, ctx =>
+    test(`invertBitsOf3bitLongNumber(${param}) === ${expected}`, ctx =>
       ctx.expect(invertBitsOf3bitLongNumber(param)).toEqual(expected));
   }
 });
