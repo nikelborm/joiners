@@ -1,4 +1,5 @@
 import type { _, joinNameToVennDiagramParts, joinNameToVennDiagramPartsWithoutAliases } from './constants.ts';
+import { type Equals, assert } from 'tsafe';
 
 
 export type AllJoinNames = keyof typeof joinNameToVennDiagramParts;
@@ -103,16 +104,16 @@ export type BBE<L, R> = BBA<L, R> | BBC<L, R>;
 
 
 export type And<
-  ArrayOfValuesToCheck extends boolean[],
-> = ArrayOfValuesToCheck extends [infer CurrentElement, ...infer Other extends boolean[]]
+  ArrayOfValuesToCheck,
+> = ArrayOfValuesToCheck extends [infer CurrentElement, ...infer Other]
   ? [CurrentElement] extends [false]
     ? false
     : And<Other>
   : true;
 
 export type Or<
-  ArrayOfValuesToCheck extends boolean[],
-> = ArrayOfValuesToCheck extends [infer CurrentElement, ...infer Other extends boolean[]]
+  ArrayOfValuesToCheck,
+> = ArrayOfValuesToCheck extends [infer CurrentElement, ...infer Other]
   ? [CurrentElement] extends [true]
     ? true
     : And<Other>
@@ -135,8 +136,8 @@ export type AreAllNotNever<
 type Not<T extends boolean> = [T] extends [true] ? false : true;
 
 
-type HasV<T> = Exclude<T, _> extends [never] ? true : false;
-type Has_<T> = Extract<T, _> extends [never] ? true : false
+type HasV<T> = [Exclude<T, _>] extends [never] ? false : true;
+type Has_<T> = [Extract<T, _>] extends [never] ? false : true;
 type IsV<T>  = And<[HasV<T>, Not<Has_<T>>]>;
 type Is_<T>  = And<[Has_<T>, Not<HasV<T>>]>;
 
@@ -177,8 +178,365 @@ export type IsBBE<Tuple extends UnknownTuple> = And<[IsBBA<Tuple>, IsBBC<Tuple>]
 
 
 
+type L = 'L';
+type R = 'R';
 
-type asd = IsBBC<[string | _, string | _]>
+
+
+assert<Equals<IsLNA<LNA<L, R>>, true >>;
+assert<Equals<IsLNA<NRA<L, R>>, false >>;
+assert<Equals<IsLNA<LRA<L, R>>, false >>;
+assert<Equals<IsLNA<LBA<L, R>>, false >>;
+assert<Equals<IsLNA<BRA<L, R>>, false >>;
+assert<Equals<IsLNA<BBA<L, R>>, false >>;
+assert<Equals<IsLNA<LNC<L, R>>, true >>;
+assert<Equals<IsLNA<NRC<L, R>>, false >>;
+assert<Equals<IsLNA<LRC<L, R>>, false >>;
+assert<Equals<IsLNA<LBC<L, R>>, false >>;
+assert<Equals<IsLNA<BRC<L, R>>, false >>;
+assert<Equals<IsLNA<BBC<L, R>>, false >>;
+assert<Equals<IsLNA<LNE<L, R>>, true >>;
+assert<Equals<IsLNA<NRE<L, R>>, false >>;
+assert<Equals<IsLNA<LRE<L, R>>, false >>;
+assert<Equals<IsLNA<LBE<L, R>>, false >>;
+assert<Equals<IsLNA<BRE<L, R>>, false >>;
+assert<Equals<IsLNA<BBE<L, R>>, false >>;
+
+assert<Equals<IsNRA<LNA<L, R>>, false >>;
+assert<Equals<IsNRA<NRA<L, R>>, true >>;
+assert<Equals<IsNRA<LRA<L, R>>, false >>;
+assert<Equals<IsNRA<LBA<L, R>>, false >>;
+assert<Equals<IsNRA<BRA<L, R>>, false >>;
+assert<Equals<IsNRA<BBA<L, R>>, false >>;
+assert<Equals<IsNRA<LNC<L, R>>, false >>;
+assert<Equals<IsNRA<NRC<L, R>>, true >>;
+assert<Equals<IsNRA<LRC<L, R>>, false >>;
+assert<Equals<IsNRA<LBC<L, R>>, false >>;
+assert<Equals<IsNRA<BRC<L, R>>, false >>;
+assert<Equals<IsNRA<BBC<L, R>>, false >>;
+assert<Equals<IsNRA<LNE<L, R>>, false >>;
+assert<Equals<IsNRA<NRE<L, R>>, true >>;
+assert<Equals<IsNRA<LRE<L, R>>, false >>;
+assert<Equals<IsNRA<LBE<L, R>>, false >>;
+assert<Equals<IsNRA<BRE<L, R>>, false >>;
+assert<Equals<IsNRA<BBE<L, R>>, false >>;
+
+assert<Equals<IsLRA<LNA<L, R>>, false >>;
+assert<Equals<IsLRA<NRA<L, R>>, false >>;
+assert<Equals<IsLRA<LRA<L, R>>, true >>;
+assert<Equals<IsLRA<LBA<L, R>>, false >>;
+assert<Equals<IsLRA<BRA<L, R>>, false >>;
+assert<Equals<IsLRA<BBA<L, R>>, false >>;
+assert<Equals<IsLRA<LNC<L, R>>, false >>;
+assert<Equals<IsLRA<NRC<L, R>>, false >>;
+assert<Equals<IsLRA<LRC<L, R>>, true >>;
+assert<Equals<IsLRA<LBC<L, R>>, false >>;
+assert<Equals<IsLRA<BRC<L, R>>, false >>;
+assert<Equals<IsLRA<BBC<L, R>>, false >>;
+assert<Equals<IsLRA<LNE<L, R>>, false >>;
+assert<Equals<IsLRA<NRE<L, R>>, false >>;
+assert<Equals<IsLRA<LRE<L, R>>, true >>;
+assert<Equals<IsLRA<LBE<L, R>>, false >>;
+assert<Equals<IsLRA<BRE<L, R>>, false >>;
+assert<Equals<IsLRA<BBE<L, R>>, false >>;
+
+assert<Equals<IsLBA<LNA<L, R>>, false >>;
+assert<Equals<IsLBA<NRA<L, R>>, false >>;
+assert<Equals<IsLBA<LRA<L, R>>, false >>;
+assert<Equals<IsLBA<LBA<L, R>>, true >>;
+assert<Equals<IsLBA<BRA<L, R>>, false >>;
+assert<Equals<IsLBA<BBA<L, R>>, false >>;
+assert<Equals<IsLBA<LNC<L, R>>, false >>;
+assert<Equals<IsLBA<NRC<L, R>>, false >>;
+assert<Equals<IsLBA<LRC<L, R>>, false >>;
+assert<Equals<IsLBA<LBC<L, R>>, false >>;
+assert<Equals<IsLBA<BRC<L, R>>, false >>;
+assert<Equals<IsLBA<BBC<L, R>>, false >>;
+assert<Equals<IsLBA<LNE<L, R>>, false >>;
+assert<Equals<IsLBA<NRE<L, R>>, false >>;
+assert<Equals<IsLBA<LRE<L, R>>, false >>;
+assert<Equals<IsLBA<LBE<L, R>>, false >>;
+assert<Equals<IsLBA<BRE<L, R>>, false >>;
+assert<Equals<IsLBA<BBE<L, R>>, false >>;
+
+assert<Equals<IsBRA<LNA<L, R>>, false >>;
+assert<Equals<IsBRA<NRA<L, R>>, false >>;
+assert<Equals<IsBRA<LRA<L, R>>, false >>;
+assert<Equals<IsBRA<LBA<L, R>>, false >>;
+assert<Equals<IsBRA<BRA<L, R>>, true >>;
+assert<Equals<IsBRA<BBA<L, R>>, false >>;
+assert<Equals<IsBRA<LNC<L, R>>, false >>;
+assert<Equals<IsBRA<NRC<L, R>>, false >>;
+assert<Equals<IsBRA<LRC<L, R>>, false >>;
+assert<Equals<IsBRA<LBC<L, R>>, false >>;
+assert<Equals<IsBRA<BRC<L, R>>, false >>;
+assert<Equals<IsBRA<BBC<L, R>>, false >>;
+assert<Equals<IsBRA<LNE<L, R>>, false >>;
+assert<Equals<IsBRA<NRE<L, R>>, false >>;
+assert<Equals<IsBRA<LRE<L, R>>, false >>;
+assert<Equals<IsBRA<LBE<L, R>>, false >>;
+assert<Equals<IsBRA<BRE<L, R>>, false >>;
+assert<Equals<IsBRA<BBE<L, R>>, false >>;
+
+assert<Equals<IsBBA<LNA<L, R>>, false >>;
+assert<Equals<IsBBA<NRA<L, R>>, false >>;
+assert<Equals<IsBBA<LRA<L, R>>, false >>;
+assert<Equals<IsBBA<LBA<L, R>>, false >>;
+assert<Equals<IsBBA<BRA<L, R>>, false >>;
+assert<Equals<IsBBA<BBA<L, R>>, true >>;
+assert<Equals<IsBBA<LNC<L, R>>, false >>;
+assert<Equals<IsBBA<NRC<L, R>>, false >>;
+assert<Equals<IsBBA<LRC<L, R>>, false >>;
+assert<Equals<IsBBA<LBC<L, R>>, false >>;
+assert<Equals<IsBBA<BRC<L, R>>, false >>;
+assert<Equals<IsBBA<BBC<L, R>>, false >>;
+assert<Equals<IsBBA<LNE<L, R>>, false >>;
+assert<Equals<IsBBA<NRE<L, R>>, false >>;
+assert<Equals<IsBBA<LRE<L, R>>, false >>;
+assert<Equals<IsBBA<LBE<L, R>>, false >>;
+assert<Equals<IsBBA<BRE<L, R>>, false >>;
+assert<Equals<IsBBA<BBE<L, R>>, false >>;
+
+assert<Equals<IsLNC<LNA<L, R>>, true >>;
+assert<Equals<IsLNC<NRA<L, R>>, false >>;
+assert<Equals<IsLNC<LRA<L, R>>, false >>;
+assert<Equals<IsLNC<LBA<L, R>>, false >>;
+assert<Equals<IsLNC<BRA<L, R>>, false >>;
+assert<Equals<IsLNC<BBA<L, R>>, false >>;
+assert<Equals<IsLNC<LNC<L, R>>, true >>;
+assert<Equals<IsLNC<NRC<L, R>>, false >>;
+assert<Equals<IsLNC<LRC<L, R>>, false >>;
+assert<Equals<IsLNC<LBC<L, R>>, false >>;
+assert<Equals<IsLNC<BRC<L, R>>, false >>;
+assert<Equals<IsLNC<BBC<L, R>>, false >>;
+assert<Equals<IsLNC<LNE<L, R>>, true >>;
+assert<Equals<IsLNC<NRE<L, R>>, false >>;
+assert<Equals<IsLNC<LRE<L, R>>, false >>;
+assert<Equals<IsLNC<LBE<L, R>>, false >>;
+assert<Equals<IsLNC<BRE<L, R>>, false >>;
+assert<Equals<IsLNC<BBE<L, R>>, false >>;
+
+assert<Equals<IsNRC<LNA<L, R>>, false >>;
+assert<Equals<IsNRC<NRA<L, R>>, true >>;
+assert<Equals<IsNRC<LRA<L, R>>, false >>;
+assert<Equals<IsNRC<LBA<L, R>>, false >>;
+assert<Equals<IsNRC<BRA<L, R>>, false >>;
+assert<Equals<IsNRC<BBA<L, R>>, false >>;
+assert<Equals<IsNRC<LNC<L, R>>, false >>;
+assert<Equals<IsNRC<NRC<L, R>>, true >>;
+assert<Equals<IsNRC<LRC<L, R>>, false >>;
+assert<Equals<IsNRC<LBC<L, R>>, false >>;
+assert<Equals<IsNRC<BRC<L, R>>, false >>;
+assert<Equals<IsNRC<BBC<L, R>>, false >>;
+assert<Equals<IsNRC<LNE<L, R>>, false >>;
+assert<Equals<IsNRC<NRE<L, R>>, true >>;
+assert<Equals<IsNRC<LRE<L, R>>, false >>;
+assert<Equals<IsNRC<LBE<L, R>>, false >>;
+assert<Equals<IsNRC<BRE<L, R>>, false >>;
+assert<Equals<IsNRC<BBE<L, R>>, false >>;
+
+assert<Equals<IsLRC<LNA<L, R>>, false >>;
+assert<Equals<IsLRC<NRA<L, R>>, false >>;
+assert<Equals<IsLRC<LRA<L, R>>, true >>;
+assert<Equals<IsLRC<LBA<L, R>>, false >>;
+assert<Equals<IsLRC<BRA<L, R>>, false >>;
+assert<Equals<IsLRC<BBA<L, R>>, false >>;
+assert<Equals<IsLRC<LNC<L, R>>, false >>;
+assert<Equals<IsLRC<NRC<L, R>>, false >>;
+assert<Equals<IsLRC<LRC<L, R>>, true >>;
+assert<Equals<IsLRC<LBC<L, R>>, false >>;
+assert<Equals<IsLRC<BRC<L, R>>, false >>;
+assert<Equals<IsLRC<BBC<L, R>>, false >>;
+assert<Equals<IsLRC<LNE<L, R>>, false >>;
+assert<Equals<IsLRC<NRE<L, R>>, false >>;
+assert<Equals<IsLRC<LRE<L, R>>, true >>;
+assert<Equals<IsLRC<LBE<L, R>>, false >>;
+assert<Equals<IsLRC<BRE<L, R>>, false >>;
+assert<Equals<IsLRC<BBE<L, R>>, false >>;
+
+assert<Equals<IsLBC<LNA<L, R>>, false >>;
+assert<Equals<IsLBC<NRA<L, R>>, false >>;
+assert<Equals<IsLBC<LRA<L, R>>, false >>;
+assert<Equals<IsLBC<LBA<L, R>>, false >>;
+assert<Equals<IsLBC<BRA<L, R>>, false >>;
+assert<Equals<IsLBC<BBA<L, R>>, false >>;
+assert<Equals<IsLBC<LNC<L, R>>, false >>;
+assert<Equals<IsLBC<NRC<L, R>>, false >>;
+assert<Equals<IsLBC<LRC<L, R>>, false >>;
+assert<Equals<IsLBC<LBC<L, R>>, true >>;
+assert<Equals<IsLBC<BRC<L, R>>, false >>;
+assert<Equals<IsLBC<BBC<L, R>>, false >>;
+assert<Equals<IsLBC<LNE<L, R>>, false >>;
+assert<Equals<IsLBC<NRE<L, R>>, false >>;
+assert<Equals<IsLBC<LRE<L, R>>, false >>;
+assert<Equals<IsLBC<LBE<L, R>>, false >>;
+assert<Equals<IsLBC<BRE<L, R>>, false >>;
+assert<Equals<IsLBC<BBE<L, R>>, false >>;
+
+assert<Equals<IsBRC<LNA<L, R>>, false >>;
+assert<Equals<IsBRC<NRA<L, R>>, false >>;
+assert<Equals<IsBRC<LRA<L, R>>, false >>;
+assert<Equals<IsBRC<LBA<L, R>>, false >>;
+assert<Equals<IsBRC<BRA<L, R>>, false >>;
+assert<Equals<IsBRC<BBA<L, R>>, false >>;
+assert<Equals<IsBRC<LNC<L, R>>, false >>;
+assert<Equals<IsBRC<NRC<L, R>>, false >>;
+assert<Equals<IsBRC<LRC<L, R>>, false >>;
+assert<Equals<IsBRC<LBC<L, R>>, false >>;
+assert<Equals<IsBRC<BRC<L, R>>, true >>;
+assert<Equals<IsBRC<BBC<L, R>>, false >>;
+assert<Equals<IsBRC<LNE<L, R>>, false >>;
+assert<Equals<IsBRC<NRE<L, R>>, false >>;
+assert<Equals<IsBRC<LRE<L, R>>, false >>;
+assert<Equals<IsBRC<LBE<L, R>>, false >>;
+assert<Equals<IsBRC<BRE<L, R>>, false >>;
+assert<Equals<IsBRC<BBE<L, R>>, false >>;
+
+assert<Equals<IsBBC<LNA<L, R>>, false >>;
+assert<Equals<IsBBC<NRA<L, R>>, false >>;
+assert<Equals<IsBBC<LRA<L, R>>, false >>;
+assert<Equals<IsBBC<LBA<L, R>>, false >>;
+assert<Equals<IsBBC<BRA<L, R>>, false >>;
+assert<Equals<IsBBC<BBA<L, R>>, false >>;
+assert<Equals<IsBBC<LNC<L, R>>, false >>;
+assert<Equals<IsBBC<NRC<L, R>>, false >>;
+assert<Equals<IsBBC<LRC<L, R>>, false >>;
+assert<Equals<IsBBC<LBC<L, R>>, false >>;
+assert<Equals<IsBBC<BRC<L, R>>, false >>;
+assert<Equals<IsBBC<BBC<L, R>>, true >>;
+assert<Equals<IsBBC<LNE<L, R>>, false >>;
+assert<Equals<IsBBC<NRE<L, R>>, false >>;
+assert<Equals<IsBBC<LRE<L, R>>, false >>;
+assert<Equals<IsBBC<LBE<L, R>>, false >>;
+assert<Equals<IsBBC<BRE<L, R>>, false >>;
+assert<Equals<IsBBC<BBE<L, R>>, false >>;
+
+assert<Equals<IsLNE<LNA<L, R>>, true >>;
+assert<Equals<IsLNE<NRA<L, R>>, false >>;
+assert<Equals<IsLNE<LRA<L, R>>, false >>;
+assert<Equals<IsLNE<LBA<L, R>>, false >>;
+assert<Equals<IsLNE<BRA<L, R>>, false >>;
+assert<Equals<IsLNE<BBA<L, R>>, false >>;
+assert<Equals<IsLNE<LNC<L, R>>, true >>;
+assert<Equals<IsLNE<NRC<L, R>>, false >>;
+assert<Equals<IsLNE<LRC<L, R>>, false >>;
+assert<Equals<IsLNE<LBC<L, R>>, false >>;
+assert<Equals<IsLNE<BRC<L, R>>, false >>;
+assert<Equals<IsLNE<BBC<L, R>>, false >>;
+assert<Equals<IsLNE<LNE<L, R>>, true >>;
+assert<Equals<IsLNE<NRE<L, R>>, false >>;
+assert<Equals<IsLNE<LRE<L, R>>, false >>;
+assert<Equals<IsLNE<LBE<L, R>>, false >>;
+assert<Equals<IsLNE<BRE<L, R>>, false >>;
+assert<Equals<IsLNE<BBE<L, R>>, false >>;
+
+assert<Equals<IsNRE<LNA<L, R>>, false >>;
+assert<Equals<IsNRE<NRA<L, R>>, true >>;
+assert<Equals<IsNRE<LRA<L, R>>, false >>;
+assert<Equals<IsNRE<LBA<L, R>>, false >>;
+assert<Equals<IsNRE<BRA<L, R>>, false >>;
+assert<Equals<IsNRE<BBA<L, R>>, false >>;
+assert<Equals<IsNRE<LNC<L, R>>, false >>;
+assert<Equals<IsNRE<NRC<L, R>>, true >>;
+assert<Equals<IsNRE<LRC<L, R>>, false >>;
+assert<Equals<IsNRE<LBC<L, R>>, false >>;
+assert<Equals<IsNRE<BRC<L, R>>, false >>;
+assert<Equals<IsNRE<BBC<L, R>>, false >>;
+assert<Equals<IsNRE<LNE<L, R>>, false >>;
+assert<Equals<IsNRE<NRE<L, R>>, true >>;
+assert<Equals<IsNRE<LRE<L, R>>, false >>;
+assert<Equals<IsNRE<LBE<L, R>>, false >>;
+assert<Equals<IsNRE<BRE<L, R>>, false >>;
+assert<Equals<IsNRE<BBE<L, R>>, false >>;
+
+assert<Equals<IsLRE<LNA<L, R>>, false >>;
+assert<Equals<IsLRE<NRA<L, R>>, false >>;
+assert<Equals<IsLRE<LRA<L, R>>, false >>;
+assert<Equals<IsLRE<LBA<L, R>>, false >>;
+assert<Equals<IsLRE<BRA<L, R>>, false >>;
+assert<Equals<IsLRE<BBA<L, R>>, false >>;
+assert<Equals<IsLRE<LNC<L, R>>, false >>;
+assert<Equals<IsLRE<NRC<L, R>>, false >>;
+assert<Equals<IsLRE<LRC<L, R>>, false >>;
+assert<Equals<IsLRE<LBC<L, R>>, false >>;
+assert<Equals<IsLRE<BRC<L, R>>, false >>;
+assert<Equals<IsLRE<BBC<L, R>>, false >>;
+assert<Equals<IsLRE<LNE<L, R>>, false >>;
+assert<Equals<IsLRE<NRE<L, R>>, false >>;
+assert<Equals<IsLRE<LRE<L, R>>, true >>;
+assert<Equals<IsLRE<LBE<L, R>>, false >>;
+assert<Equals<IsLRE<BRE<L, R>>, false >>;
+assert<Equals<IsLRE<BBE<L, R>>, false >>;
+
+assert<Equals<IsLBE<LNA<L, R>>, false >>;
+assert<Equals<IsLBE<NRA<L, R>>, false >>;
+assert<Equals<IsLBE<LRA<L, R>>, false >>;
+assert<Equals<IsLBE<LBA<L, R>>, false >>;
+assert<Equals<IsLBE<BRA<L, R>>, false >>;
+assert<Equals<IsLBE<BBA<L, R>>, false >>;
+assert<Equals<IsLBE<LNC<L, R>>, false >>;
+assert<Equals<IsLBE<NRC<L, R>>, false >>;
+assert<Equals<IsLBE<LRC<L, R>>, false >>;
+assert<Equals<IsLBE<LBC<L, R>>, false >>;
+assert<Equals<IsLBE<BRC<L, R>>, false >>;
+assert<Equals<IsLBE<BBC<L, R>>, false >>;
+assert<Equals<IsLBE<LNE<L, R>>, false >>;
+assert<Equals<IsLBE<NRE<L, R>>, false >>;
+assert<Equals<IsLBE<LRE<L, R>>, false >>;
+assert<Equals<IsLBE<LBE<L, R>>, true >>;
+assert<Equals<IsLBE<BRE<L, R>>, false >>;
+assert<Equals<IsLBE<BBE<L, R>>, false >>;
+
+assert<Equals<IsBRE<LNA<L, R>>, false >>;
+assert<Equals<IsBRE<NRA<L, R>>, false >>;
+assert<Equals<IsBRE<LRA<L, R>>, false >>;
+assert<Equals<IsBRE<LBA<L, R>>, false >>;
+assert<Equals<IsBRE<BRA<L, R>>, false >>;
+assert<Equals<IsBRE<BBA<L, R>>, false >>;
+assert<Equals<IsBRE<LNC<L, R>>, false >>;
+assert<Equals<IsBRE<NRC<L, R>>, false >>;
+assert<Equals<IsBRE<LRC<L, R>>, false >>;
+assert<Equals<IsBRE<LBC<L, R>>, false >>;
+assert<Equals<IsBRE<BRC<L, R>>, false >>;
+assert<Equals<IsBRE<BBC<L, R>>, false >>;
+assert<Equals<IsBRE<LNE<L, R>>, false >>;
+assert<Equals<IsBRE<NRE<L, R>>, false >>;
+assert<Equals<IsBRE<LRE<L, R>>, false >>;
+assert<Equals<IsBRE<LBE<L, R>>, false >>;
+assert<Equals<IsBRE<BRE<L, R>>, true >>;
+assert<Equals<IsBRE<BBE<L, R>>, false >>;
+
+assert<Equals<IsBBE<LNA<L, R>>, false >>;
+assert<Equals<IsBBE<NRA<L, R>>, false >>;
+assert<Equals<IsBBE<LRA<L, R>>, false >>;
+assert<Equals<IsBBE<LBA<L, R>>, false >>;
+assert<Equals<IsBBE<BRA<L, R>>, false >>;
+assert<Equals<IsBBE<BBA<L, R>>, false >>;
+assert<Equals<IsBBE<LNC<L, R>>, false >>;
+assert<Equals<IsBBE<NRC<L, R>>, false >>;
+assert<Equals<IsBBE<LRC<L, R>>, false >>;
+assert<Equals<IsBBE<LBC<L, R>>, false >>;
+assert<Equals<IsBBE<BRC<L, R>>, false >>;
+assert<Equals<IsBBE<BBC<L, R>>, false >>;
+assert<Equals<IsBBE<LNE<L, R>>, false >>;
+assert<Equals<IsBBE<NRE<L, R>>, false >>;
+assert<Equals<IsBBE<LRE<L, R>>, false >>;
+assert<Equals<IsBBE<LBE<L, R>>, false >>;
+assert<Equals<IsBBE<BRE<L, R>>, false >>;
+assert<Equals<IsBBE<BBE<L, R>>, true >>;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

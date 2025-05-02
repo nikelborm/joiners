@@ -1,5 +1,4 @@
-import { expect } from "tstyche";
-
+import { type Equals, assert } from 'tsafe';
 import type {
   FullExclusiveJoin,
   FullJoin,
@@ -18,42 +17,37 @@ type B = typeof B;
 
 
 
-expect<LeftExclusiveJoin <A, B, 'A'>>().type.toBe<[A, _]>();
-expect<InnerJoin         <A, B, 'A'>>().type.toBe<[A, B]>();
-expect<RightExclusiveJoin<A, B, 'A'>>().type.toBe<[_, B]>();
-expect<LeftJoin          <A, B, 'A'>>().type.toBe<[A, B] | [A, _]>();
-expect<RightJoin         <A, B, 'A'>>().type.toBe<[A, B] | [_, B]>();
-expect<FullExclusiveJoin <A, B, 'A'>>().type.toBe<[A, _] | [_, B]>();
-expect<FullJoin          <A, B, 'A'>>().type.toBe<[A, _] | [_, B] | [A, B]>();
+assert<Equals<LeftExclusiveJoin <A, B, 'A'>, [A, _]>>();
+assert<Equals<InnerJoin         <A, B, 'A'>, [A, B]>>();
+assert<Equals<RightExclusiveJoin<A, B, 'A'>, [_, B]>>();
+assert<Equals<LeftJoin          <A, B, 'A'>, [A, B] | [A, _]>>();
+assert<Equals<RightJoin         <A, B, 'A'>, [A, B] | [_, B]>>();
+assert<Equals<FullExclusiveJoin <A, B, 'A'>, [A, _] | [_, B]>>();
+assert<Equals<FullJoin          <A, B, 'A'>, [A, _] | [_, B] | [A, B]>>();
 
 
-expect<LeftExclusiveJoin <A, B, 'C'>>().type.toBe<[A, _]>();
-expect<InnerJoin         <A, B, 'C'>>().type.toBe<[A, B]>();
-expect<RightExclusiveJoin<A, B, 'C'>>().type.toBe<[_, B]>();
-expect<LeftJoin          <A, B, 'C'>>().type.toBe<[A    , B | _]>();
-expect<RightJoin         <A, B, 'C'>>().type.toBe<[A | _, B    ]>();
-expect<FullExclusiveJoin <A, B, 'C'>>().type.toBe<[A    , _] | [_, B    ]>();
-expect<FullJoin          <A, B, 'C'>>().type.toBe<[A | _, B] | [A, B | _]>();
+assert<Equals<LeftExclusiveJoin <A, B, 'C'>, [A, _]>>();
+assert<Equals<InnerJoin         <A, B, 'C'>, [A, B]>>();
+assert<Equals<RightExclusiveJoin<A, B, 'C'>, [_, B]>>();
+assert<Equals<LeftJoin          <A, B, 'C'>, [A    , B | _]>>();
+assert<Equals<RightJoin         <A, B, 'C'>, [A | _, B    ]>>();
+assert<Equals<FullExclusiveJoin <A, B, 'C'>, [A    , _] | [_, B    ]>>();
+assert<Equals<FullJoin          <A, B, 'C'>, [A | _, B] | [A, B | _]>>();
 
 
-expect<LeftExclusiveJoin <A, B, 'E'>>().type.toBe< [A, _]>();
-expect<InnerJoin         <A, B, 'E'>>().type.toBe< [A, B]>();
-expect<RightExclusiveJoin<A, B, 'E'>>().type.toBe< [_, B]>();
-expect<LeftJoin          <A, B, 'E'>>().type.toBe< [A, B] | [A, _] | [A,     B | _]>();
-expect<RightJoin         <A, B, 'E'>>().type.toBe< [A, B] | [_, B] | [A | _, B    ]>();
-expect<FullExclusiveJoin <A, B, 'E'>>().type.toBe< [A, _] | [_, B]>();
-expect<FullJoin<A, B, 'E'>>().type.toBe<
+assert<Equals<LeftExclusiveJoin <A, B, 'E'>,  [A, _]>>();
+assert<Equals<InnerJoin         <A, B, 'E'>,  [A, B]>>();
+assert<Equals<RightExclusiveJoin<A, B, 'E'>,  [_, B]>>();
+assert<Equals<LeftJoin          <A, B, 'E'>,  [A, B] | [A, _] | [A,     B | _]>>();
+assert<Equals<RightJoin         <A, B, 'E'>,  [A, B] | [_, B] | [A | _, B    ]>>();
+assert<Equals<FullExclusiveJoin <A, B, 'E'>,  [A, _] | [_, B]>>();
+assert<Equals<FullJoin<A, B, 'E'>,
   | [A, B]
   | [A, _]
   | [_, B]
   | [A | _, B    ]
   | [A,     B | _]
->();
+>>();
 
 
-
-
-
-
-
-// TODO: add type assertions not only for generics,   but to a function call returns
+// TODO: add type assertions not only for generics, but to a function call returns
