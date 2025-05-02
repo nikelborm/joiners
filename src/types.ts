@@ -451,13 +451,13 @@ assert<Equals<IsNRE<BBE<L, R>>, false >>;
 
 assert<Equals<IsLRE<LNA<L, R>>, false >>;
 assert<Equals<IsLRE<NRA<L, R>>, false >>;
-assert<Equals<IsLRE<LRA<L, R>>, false >>;
+assert<Equals<IsLRE<LRA<L, R>>, true >>;
 assert<Equals<IsLRE<LBA<L, R>>, false >>;
 assert<Equals<IsLRE<BRA<L, R>>, false >>;
 assert<Equals<IsLRE<BBA<L, R>>, false >>;
 assert<Equals<IsLRE<LNC<L, R>>, false >>;
 assert<Equals<IsLRE<NRC<L, R>>, false >>;
-assert<Equals<IsLRE<LRC<L, R>>, false >>;
+assert<Equals<IsLRE<LRC<L, R>>, true >>;
 assert<Equals<IsLRE<LBC<L, R>>, false >>;
 assert<Equals<IsLRE<BRC<L, R>>, false >>;
 assert<Equals<IsLRE<BBC<L, R>>, false >>;
