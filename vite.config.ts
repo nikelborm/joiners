@@ -10,7 +10,7 @@ export default defineConfig({
       ...defaultExclude,
       'tmp/**',
       'destination/**',
-      '**/*{helper,types}.spec[.][jt]s',
+      '**/*{helper,types,tstyche}.spec[.][jt]s',
     ],
     coverage: {
       enabled: true,

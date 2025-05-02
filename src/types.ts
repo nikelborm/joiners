@@ -20,21 +20,25 @@ export type ForbiddenLiteralUnion<
 > =
   `Argument ${Argument} of ${
     OfTypeName
-  }<...> accepts only single string literal (literal union is forbidden).`
+  }<...> accepts only single string literal and can't be union.`
 ;
 
 
-// 1st letter:
+/**
+ * It's the 1st letter
+ * - N - No element(empty/_). 1st element of the tuple is _
+ * - L - Left element(L)    . 1st element of the tuple is L
+ * - B - Both               . 1st element of the tuple is (_ | L)
+ */
 export type LeftTupleStructureCodePart = 'N' | 'L' | 'B';
-// N - No element(empty/_). 1st element of the tuple is _
-// L - Left element(L)    . 1st element of the tuple is L
-// B - Both               . 1st element of the tuple is (_ | L)
 
-// 2nd letter:
+/**
+ * It's the 2nd letter
+ * - N - No element(empty/_). 2nd element of the tuple is _
+ * - R - Right element(R)   . 2nd element of the tuple is R
+ * - B - Both               . 2nd element of the tuple is (_ | R)
+ */
 export type RightTupleStructureCodePart = 'N' | 'R' | 'B';
-// N - No element(empty/_). 2nd element of the tuple is _
-// R - Right element(R)   . 2nd element of the tuple is R
-// B - Both               . 2nd element of the tuple is (_ | R)
 
 // 3rd letter
 
@@ -63,8 +67,7 @@ export type RightTupleStructureCodePart = 'N' | 'R' | 'B';
  * **3. `E` stands for `Expanded`.**
  *
  * A union of all possible representations of LR tuple, the union of both Atomic
- * and Expanded types.
- *
+ * and Compact types.
  */
 export type LevelOfDetailModifier = 'A' | 'C' | 'E';
 
@@ -99,62 +102,83 @@ export type BBE<L, R> = BBA<L, R> | BBC<L, R>;
 
 
 
+export type And<
+  ArrayOfValuesToCheck extends boolean[],
+> = ArrayOfValuesToCheck extends [infer CurrentElement, ...infer Other extends boolean[]]
+  ? [CurrentElement] extends [false]
+    ? false
+    : And<Other>
+  : true;
+
+export type Or<
+  ArrayOfValuesToCheck extends boolean[],
+> = ArrayOfValuesToCheck extends [infer CurrentElement, ...infer Other extends boolean[]]
+  ? [CurrentElement] extends [true]
+    ? true
+    : And<Other>
+  : false;
 
 
 
 
-export type FilterOne<
-  Tuple extends [unknown, unknown],
-  Pos extends 0 | 1
-> = [Tuple[Pos]] extends [never] ? never : Tuple;
+export type AreAllNotNever<
+  ArrayOfValuesToCheck extends unknown[] | [],
+  ReturnIfAllAreNotNever = true,
+  ReturnIfAllSomeAreNever = false
+> = ArrayOfValuesToCheck extends [infer CurrentElement, ...infer Other]
+  ? [CurrentElement] extends [never]
+    ? ReturnIfAllSomeAreNever
+    : AreAllNotNever<Other, ReturnIfAllAreNotNever, ReturnIfAllSomeAreNever>
+  : ReturnIfAllAreNotNever;
+
+
+type Not<T extends boolean> = [T] extends [true] ? false : true;
+
+
+type HasV<T> = Exclude<T, _> extends [never] ? true : false;
+type Has_<T> = Extract<T, _> extends [never] ? true : false
+type IsV<T>  = And<[HasV<T>, Not<Has_<T>>]>;
+type Is_<T>  = And<[Has_<T>, Not<HasV<T>>]>;
 
 
 
-export type Filter<
-  Tuple extends [unknown, unknown],
-  By extends 'l-' | '-r' | 'lr'
-> =
-  [By] extends ['l-'] ? FilterOne<Tuple, 0> :
-  [By] extends ['-r'] ? FilterOne<Tuple, 1> :
-  [By] extends ['lr'] ? FilterOne<FilterOne<Tuple, 0>, 1> :
-  ForbiddenLiteralUnion<'By', 'Filter'>
-;
+type UnknownTuple = [unknown, unknown]
 
-export type To_<T> = Extract<T, _>;
-export type ToV<T> = Exclude<T, _>;
+// `IS` is a precise match. If expected LBA<L, R>, `Tuple` should be precisely `[L, _] | [_, R]`
+// `AssignableTo` is a loose match.
 
 // ATOMS
-export type ToLNA<L, R> = Filter<[ToV<L>, To_<R>], 'lr'>; // [L, _]
-export type ToNRA<L, R> = Filter<[To_<L>, ToV<R>], 'lr'>; // [_, R]
-export type ToLRA<L, R> = Filter<[ToV<L>, ToV<R>], 'lr'>; // [L, R]
+export type IsLNA<Tuple extends UnknownTuple> = And<[IsV<Tuple[0]>, Is_<Tuple[1]>]>; // [L, _]
+export type IsNRA<Tuple extends UnknownTuple> = And<[Is_<Tuple[0]>, IsV<Tuple[1]>]>; // [_, R]
+export type IsLRA<Tuple extends UnknownTuple> = And<[IsV<Tuple[0]>, IsV<Tuple[1]>]>; // [L, R]
 
 // To better understand atoms with letter B in code, see according compact
-export type ToLBA<L, R> = ToLNA<L, R> | ToLRA<L, R>;
-export type ToBRA<L, R> = ToNRA<L, R> | ToLRA<L, R>;
-export type ToBBA<L, R> = ToLNA<L, R> | ToNRA<L, R> | ToLRA<L, R>;
+export type IsLBA<Tuple extends UnknownTuple> = And<[IsLNA<Tuple>, IsLRA<Tuple>]>;
+export type IsBRA<Tuple extends UnknownTuple> = And<[IsNRA<Tuple>, IsLRA<Tuple>]>;
+export type IsBBA<Tuple extends UnknownTuple> = And<[IsLNA<Tuple>, IsNRA<Tuple>, IsLRA<Tuple>]>;
 
 // COMPACTED
-export type ToLNC<L, R> = ToLNA<L, R>;
-export type ToNRC<L, R> = ToNRA<L, R>;
-export type ToLRC<L, R> = ToLRA<L, R>;
+export type IsLNC<Tuple extends UnknownTuple> = IsLNA<Tuple>;
+export type IsNRC<Tuple extends UnknownTuple> = IsNRA<Tuple>;
+export type IsLRC<Tuple extends UnknownTuple> = IsLRA<Tuple>;
 
-export type ToLBC<L, R> = Filter<[ToV<L>, R     ], 'l-'>; // [L    , R | _]
-export type ToBRC<L, R> = Filter<[L     , ToV<R>], '-r'>; // [L | _, R    ]
-export type ToBBC<L, R> = ToLBC<L, R> | ToBRC<L, R>
+export type IsLBC<Tuple extends UnknownTuple> = And<[IsV<Tuple[0]>, HasV<Tuple[1]>, Has_<Tuple[1]>]>; // [L    , R | _]
+export type IsBRC<Tuple extends UnknownTuple> = And<[HasV<Tuple[0]>, Has_<Tuple[0]>, IsV<Tuple[1]>]>; // [L | _, R    ]
+export type IsBBC<Tuple extends UnknownTuple> = And<[IsLBC<Tuple>, IsBRC<Tuple>]>
 
 // EXPANDED
-export type ToLNE<L, R> = ToLNA<L, R>;
-export type ToNRE<L, R> = ToNRA<L, R>;
-export type ToLRE<L, R> = ToLRA<L, R>;
+export type IsLNE<Tuple extends UnknownTuple> = IsLNA<Tuple>;
+export type IsNRE<Tuple extends UnknownTuple> = IsNRA<Tuple>;
+export type IsLRE<Tuple extends UnknownTuple> = IsLRA<Tuple>;
 
-export type ToLBE<L, R> = ToLBA<L, R> | ToLBC<L, R>;
-export type ToBRE<L, R> = ToBRA<L, R> | ToBRC<L, R>;
-export type ToBBE<L, R> = ToBBA<L, R> | ToBBC<L, R>;
-
-
+export type IsLBE<Tuple extends UnknownTuple> = And<[IsLBA<Tuple>, IsLBC<Tuple>]>;
+export type IsBRE<Tuple extends UnknownTuple> = And<[IsBRA<Tuple>, IsBRC<Tuple>]>;
+export type IsBBE<Tuple extends UnknownTuple> = And<[IsBBA<Tuple>, IsBBC<Tuple>]>;
 
 
 
+
+type asd = IsBBC<[string | _, string | _]>
 
 
 
@@ -203,14 +227,17 @@ export type TupleStructureCodeAcceptingUnionBy<
   }[VennDiagramPartsUnion]
 ;
 
+
+/**
+ * Excluding `NN`, `NB` (`NN | NR`) and `BN` (`NN | LN`) doesn't mean there will
+ * be no emptiness (unique symbol stored in constant named `_`) as values in the
+ * result. It means that merge function will never get emptiness in both left
+ * and right slot of the same tuple, because such merge is impossible
+ */
 export type TupleStructureCode = Exclude<
   `${LeftTupleStructureCodePart}${RightTupleStructureCodePart}`,
   'NN' | 'NB' | 'BN'
 >;
-// excluding NN, NB (== NN | NR) and BN (== NN | LN) doesn't mean there
-// will be no nulls as values in the result. It means that merge function
-// will never get EMPTINESS (unique symbol stored in constant named "_") in
-// both left and right slot, because such merge is impossible
 
 export type TupleStructureCodeToDetailingModifierCombinations =
   `${TupleStructureCode}${LevelOfDetailModifier}`;

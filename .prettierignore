@@ -1,5 +1,5 @@
 types.ts
-test.types.ts
+types.spec.ts
 constants.ts
 spreadObjectMerger.ts
 spreadObjectMerger.spec.ts

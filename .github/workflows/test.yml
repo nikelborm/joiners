@@ -1,13 +1,12 @@
 name: Tests
 on:
   workflow_dispatch:
-  # push:
-  #   branches: [main, dev]
-  #   paths:
-  #     - 'src/**'
-  #     - '*.spec.ts'
-  #     - 'vite.config.ts'
-  #     - 'gh-page/**'
+  push:
+    branches: [main, dev]
+    paths:
+      - 'src/**'
+      - 'vite.config.ts'
+      - 'gh-page/**'
 
 jobs:
   test-coverage:
