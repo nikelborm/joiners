@@ -1,6 +1,6 @@
 types.ts
-types.spec.ts
+types.tstyche.spec.ts
 constants.ts
 spreadObjectMerger.ts
-spreadObjectMerger.spec.ts
-PreserveUndefinedOnlyIfWasExplicit.spec.ts
+spreadObjectMerger.tstyche.spec.ts
+PreserveUndefinedOnlyIfWasExplicit.tstyche.spec.ts

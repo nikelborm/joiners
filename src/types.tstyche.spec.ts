@@ -4,7 +4,6 @@ import type {
   FullExclusiveJoin,
   FullJoin,
   InnerJoin,
-  IsLNA,
   LeftExclusiveJoin,
   LeftJoin,
   RightExclusiveJoin,
@@ -57,27 +56,4 @@ expect<FullJoin<A, B, 'E'>>().type.toBe<
 
 
 
-
-
-
-
-
-expect<IsLNA<[A, _]>,  >
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// TODO: add type assertions not only for generics, but to a function call returns
+// TODO: add type assertions not only for generics,   but to a function call returns

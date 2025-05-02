@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "scratchpad": "node --env-file=.env ./scratchpad.ts",
-    "test": "vitest --watch",
+    "test": "vitest --typecheck --watch",
     "format": "prettier . --write",
     "coverage": "vitest run --coverage",
     "test-once": "vitest --run",
