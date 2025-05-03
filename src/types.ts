@@ -1,5 +1,6 @@
 import type { _, joinNameToVennDiagramParts, joinNameToVennDiagramPartsWithoutAliases } from './constants.ts';
 import { type Equals, assert } from 'tsafe';
+import type { TuplifyUnion } from './TuplifyUnion.ts';
 
 
 export type AllJoinNames = keyof typeof joinNameToVennDiagramParts;
@@ -73,43 +74,97 @@ export type RightTupleStructureCodePart = 'N' | 'R' | 'B';
 export type LevelOfDetailModifier = 'A' | 'C' | 'E';
 
 // ATOMS
-export type LNA<L, R> = [L, _];
-export type NRA<L, R> = [_, R];
-export type LRA<L, R> = [L, R];
+export type LNA<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'LNA'>
+export type NRA<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'NRA'>
+export type LRA<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'LRA'>
 
-// To better understand atoms with letter B in code, see according
-// compacted versions
-export type LBA<L, R> = LNA<L, R> | LRA<L, R>;
-export type BRA<L, R> = NRA<L, R> | LRA<L, R>;
-export type BBA<L, R> = LNA<L, R> | NRA<L, R> | LRA<L, R>;
+export type LBA<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'LBA'>
+export type BRA<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'BRA'>
+export type BBA<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'BBA'>
 
 // COMPACTED
-export type LNC<L, R> = LNA<L, R>;
-export type NRC<L, R> = NRA<L, R>;
-export type LRC<L, R> = LRA<L, R>;
+export type LNC<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'LNC'>
+export type NRC<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'NRC'>
+export type LRC<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'LRC'>
 
-export type LBC<L, R> = [L    , R | _];
-export type BRC<L, R> = [L | _, R    ];
-export type BBC<L, R> = LBC<L, R> | BRC<L, R>;
+export type LBC<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'LBC'>
+export type BRC<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'BRC'>
+export type BBC<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'BBC'>
 
 // EXPANDED
-export type LNE<L, R> = LNA<L, R>;
-export type NRE<L, R> = NRA<L, R>;
-export type LRE<L, R> = LRA<L, R>;
+export type LNE<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'LNE'>
+export type NRE<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'NRE'>
+export type LRE<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'LRE'>
 
-export type LBE<L, R> = LBA<L, R> | LBC<L, R>;
-export type BRE<L, R> = BRA<L, R> | BRC<L, R>;
-export type BBE<L, R> = BBA<L, R> | BBC<L, R>;
+export type LBE<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'LBE'>
+export type BRE<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'BRE'>
+export type BBE<L, R> = ResolveTupleStructureCodeToActualUnionOfTuples<L, R, 'BBE'>
 
 
 
-export type And<
-  ArrayOfValuesToCheck,
-> = ArrayOfValuesToCheck extends [infer CurrentElement, ...infer Other]
-  ? [CurrentElement] extends [false]
-    ? false
-    : And<Other>
-  : true;
+
+
+export type ResolveAlias<
+  CombUnion extends TupleStructureCodeToDetailingModifierCombinations
+> = {
+  // Atomic
+  'LNA': 'LNA'; // Leaf Combinatorial part
+  'NRA': 'NRA'; // Leaf Combinatorial part
+  'LRA': 'LRA'; // Leaf Combinatorial part
+
+  'LBA': 'LNA' | 'LRA';
+  'BRA': 'NRA' | 'LRA';
+  'BBA': 'LNA' | 'NRA' | 'LRA';
+
+  // Compact
+  'LNC': 'LNA';
+  'NRC': 'NRA';
+  'LRC': 'LRA';
+
+  'LBC': 'LBC'; // Leaf Combinatorial part
+  'BRC': 'BRC'; // Leaf Combinatorial part
+  'BBC': 'LBC' | 'BRC';
+
+  // Expanded
+  'LNE': 'LNA';
+  'NRE': 'NRA';
+  'LRE': 'LRA';
+
+  'LBE': 'LBA' | 'LBC'
+  'BRE': 'BRA' | 'BRC'
+  'BBE': 'BBA' | 'BBC'
+}[CombUnion];
+
+
+type CombinatorialTupleStructureCode = 'LNA' | 'NRA' | 'LRA' | 'LBC' | 'BRC';
+
+type CombinatorialTupleStructureLookupTable<L, R> = {
+  LNA: [L, _];
+  NRA: [_, R];
+  LRA: [L, R];
+  LBC: [L    , R | _];
+  BRC: [L | _, R    ];
+}
+
+type ResolveTupleStructureCodeToUnionOfValuesFromLookupTable<
+  LookupTable extends Record<CombinatorialTupleStructureCode, unknown>,
+  TupleStructureCode extends TupleStructureCodeToDetailingModifierCombinations
+> = TupleStructureCode extends CombinatorialTupleStructureCode
+  ? LookupTable[TupleStructureCode]
+  : ResolveTupleStructureCodeToUnionOfValuesFromLookupTable<
+    LookupTable,
+    ResolveAlias<TupleStructureCode>
+  >;
+
+type ResolveTupleStructureCodeToActualUnionOfTuples<
+  L,
+  R,
+  TupleStructureCode extends TupleStructureCodeToDetailingModifierCombinations
+> = ResolveTupleStructureCodeToUnionOfValuesFromLookupTable<
+  CombinatorialTupleStructureLookupTable<L, R>,
+  TupleStructureCode
+>;
+
 
 export type Or<
   ArrayOfValuesToCheck,
@@ -154,7 +209,71 @@ export type IsNRA<Tuple extends UnknownTuple> = And<[Is_<Tuple[0]>, IsV<Tuple[1]
 export type IsLRA<Tuple extends UnknownTuple> = And<[IsV<Tuple[0]>, IsV<Tuple[1]>]>; // [L, R]
 
 // To better understand atoms with letter B in code, see according compact
-export type IsLBA<Tuple extends UnknownTuple> = And<[IsLNA<Tuple>, IsLRA<Tuple>]>;
+
+
+
+
+export type And<
+  ArrayOfValuesToCheck,
+> = ArrayOfValuesToCheck extends [infer CurrentElement, ...infer Other]
+  ? [CurrentElement] extends [false]
+    ? false
+    : And<Other>
+  : true;
+
+type TupleValidationLookupTable<Tuple extends UnknownTuple> = {
+  LNA: And<[IsV<Tuple[0]>, Is_<Tuple[1]>]> extends true ? 'LNA matched' : 'no match';
+  NRA: And<[Is_<Tuple[0]>, IsV<Tuple[1]>]> extends true ? 'NRA matched' : 'no match';
+  LRA: And<[IsV<Tuple[0]>, IsV<Tuple[1]>]> extends true ? 'LRA matched' : 'no match';
+  LBC: And<[IsV<Tuple[0]>, HasV<Tuple[1]>, Has_<Tuple[1]>]> extends true ? 'LBC matched' : 'no match';
+  BRC: And<[HasV<Tuple[0]>, Has_<Tuple[0]>, IsV<Tuple[1]>]> extends true ? 'BRC matched' : 'no match';
+};
+
+export type FuckingMagic2 <
+  SingularTuple extends UnknownTuple,
+  TupleStructureCodeUnionToBeDecomposed extends TupleStructureCodeToDetailingModifierCombinations
+> = ResolveTupleStructureCodeToUnionOfValuesFromLookupTable<
+  TupleValidationLookupTable<SingularTuple>,
+  TupleStructureCodeUnionToBeDecomposed
+>;
+type kasjbdfla = FuckingMagic2<BRC<L, R>, 'BBE'>;
+//   ^?
+
+
+// export type FuckingMagic1Wrapper<
+//   Tuple extends UnknownTuple,
+//   UnionOfCodes
+// > = FuckingMagic1<Tuple, TuplifyUnion<UnionOfCodes>>
+
+// export type FuckingMagic1<
+//   Tuple extends UnknownTuple,
+//   ArrayOfTupleCodesToCheck
+// > = ArrayOfTupleCodesToCheck extends [infer CurrentTupleCode extends TupleStructureCodeToDetailingModifierCombinations, ...infer ArrayOfOtherTupleCodesToCheck]
+//   ? [And<[TuplifyUnion<FuckingMagic2<Tuple, CurrentTupleCode>>]>] extends [true]
+//     ? `${CurrentTupleCode} matched`
+//     : FuckingMagic1<Tuple, ArrayOfOtherTupleCodesToCheck>
+//   : false;
+
+
+
+
+type comp<
+  TupleUnion extends UnknownTuple,
+  IsCodeSingular extends TupleStructureCodeToDetailingModifierCombinations
+> = TupleUnion extends any
+? (FuckingMagic2<TupleUnion, IsCodeSingular>)
+: never;
+
+
+type ll = comp<BBA<L, R>, 'BBA'>;
+
+export type IsLBA<Tuple extends UnknownTuple> = Equals<
+  ,
+  "LNA is part of the union" | "LRA is part of the union"
+>;
+
+
+
 export type IsBRA<Tuple extends UnknownTuple> = And<[IsNRA<Tuple>, IsLRA<Tuple>]>;
 export type IsBBA<Tuple extends UnknownTuple> = And<[IsLNA<Tuple>, IsNRA<Tuple>, IsLRA<Tuple>]>;
 
@@ -163,8 +282,8 @@ export type IsLNC<Tuple extends UnknownTuple> = IsLNA<Tuple>;
 export type IsNRC<Tuple extends UnknownTuple> = IsNRA<Tuple>;
 export type IsLRC<Tuple extends UnknownTuple> = IsLRA<Tuple>;
 
-export type IsLBC<Tuple extends UnknownTuple> = And<[IsV<Tuple[0]>, HasV<Tuple[1]>, Has_<Tuple[1]>]>; // [L    , R | _]
-export type IsBRC<Tuple extends UnknownTuple> = And<[HasV<Tuple[0]>, Has_<Tuple[0]>, IsV<Tuple[1]>]>; // [L | _, R    ]
+export type IsLBC<Tuple extends UnknownTuple> = ; // [L    , R | _]
+export type IsBRC<Tuple extends UnknownTuple> = ; // [L | _, R    ]
 export type IsBBC<Tuple extends UnknownTuple> = And<[IsLBC<Tuple>, IsBRC<Tuple>]>
 
 // EXPANDED
@@ -177,11 +296,11 @@ export type IsBRE<Tuple extends UnknownTuple> = And<[IsBRA<Tuple>, IsBRC<Tuple>]
 export type IsBBE<Tuple extends UnknownTuple> = And<[IsBBA<Tuple>, IsBBC<Tuple>]>;
 
 
+const L = Symbol('L');
+const R = Symbol('R');
 
-type L = 'L';
-type R = 'R';
-
-
+type L = typeof L;
+type R = typeof R;
 
 assert<Equals<IsLNA<LNA<L, R>>, true >>;
 assert<Equals<IsLNA<NRA<L, R>>, false >>;
@@ -632,25 +751,32 @@ export type SelectJoinedTuplesAcceptUnion<
   R,
   CombUnion extends TupleStructureCodeToDetailingModifierCombinations
 > = {
-  'LNA': LNA<L, R>;
-  'NRA': NRA<L, R>;
-  'LRA': LRA<L, R>;
-  'LBA': LBA<L, R>;
-  'BRA': BRA<L, R>;
-  'BBA': BBA<L, R>;
-  'LNC': LNC<L, R>;
-  'NRC': NRC<L, R>;
-  'LRC': LRC<L, R>;
-  'LBC': LBC<L, R>;
-  'BRC': BRC<L, R>;
-  'BBC': BBC<L, R>;
-  'LNE': LNE<L, R>;
-  'NRE': NRE<L, R>;
-  'LRE': LRE<L, R>;
-  'LBE': LBE<L, R>;
-  'BRE': BRE<L, R>;
-  'BBE': BBE<L, R>;
+  LNA: LNA<L, R>;
+  NRA: NRA<L, R>;
+  LRA: LRA<L, R>;
+  LBA: LBA<L, R>;
+  BRA: BRA<L, R>;
+  BBA: BBA<L, R>;
+  LNC: LNC<L, R>;
+  NRC: NRC<L, R>;
+  LRC: LRC<L, R>;
+  LBC: LBC<L, R>;
+  BRC: BRC<L, R>;
+  BBC: BBC<L, R>;
+  LNE: LNE<L, R>;
+  NRE: NRE<L, R>;
+  LRE: LRE<L, R>;
+  LBE: LBE<L, R>;
+  BRE: BRE<L, R>;
+  BBE: BBE<L, R>;
 }[CombUnion];
+
+
+
+
+
+
+
 
 
 
@@ -662,7 +788,7 @@ export type JoinOnVennDiagramParts<
 > =
   // TupleStructureCodeBy can return string literal describing the error
   // (thrown when VennDiagramParts consists of union like "001" | "010"
-  // instead of single string literal like "010") and for that `extends
+  // instead of single string literal like "010") and for that reason `extends
   // TupleStructureCode` was added.
   TupleStructureCodeBy<VennDiagramParts> extends infer U extends TupleStructureCode
     ? SelectJoinedTuplesAcceptUnion<L, R, `${U}${Detailing}`>

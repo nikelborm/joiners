@@ -5,7 +5,7 @@
   "description": "Join 2 or more iterables as if it's SQL joins but with the level of type-safety you didn't know you need",
   "type": "module",
   "scripts": {
-    "scratchpad": "node --env-file=.env ./scratchpad.ts",
+    "scratchpad": "node ./scratchpad.ts",
     "test": "vitest --typecheck --watch",
     "format": "prettier . --write",
     "coverage": "vitest run --coverage",
