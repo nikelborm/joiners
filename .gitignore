@@ -8,8 +8,12 @@ docker
 joiners-*.tgz
 node_modules
 package-lock.json
-scratchpad.ts
+scratchpad*.ts
 src/types-copy.ts
 stats.html
 temp.json
 tmp
+
+# stryker temp files
+.stryker-tmp
+reports

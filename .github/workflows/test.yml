@@ -5,9 +5,7 @@ on:
   push:
     branches: [main, dev]
     paths:
-      - 'src/**'
-      - '*.spec.ts'
-      - 'vite.config.ts'
+      - '*.ts'
       - 'scripts/build.sh'
       - 'gh-page/**'
 
@@ -29,7 +27,7 @@ jobs:
       - name: 'Install dependencies'
         run: npm install
 
-      - name: 'Compile, build, bundle, report deps graph'
+      - name: 'Compile, build'
         run: npm run build
 
       - name: 'Test and report coverage'

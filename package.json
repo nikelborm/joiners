@@ -10,6 +10,7 @@
     "format": "prettier . --write",
     "coverage": "vitest run --coverage",
     "test-once": "vitest --run",
+    "test:mutate": "stryker run",
     "test-jsr": "tspc && jsr publish --dry-run",
     "build": "./scripts/build.sh",
     "doc": "./scripts/generate_docs.sh",
