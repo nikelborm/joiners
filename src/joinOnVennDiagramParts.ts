@@ -3,7 +3,7 @@ import type {
   LevelOfDetailModifier,
   VennDiagramPartsCombinations,
   JoinOnVennDiagramParts,
-  LRA,
+  VVA,
 } from './types.ts';
 
 export function buildJoinerOnVennDiagramPartsWithCustomDetailingModifier<
@@ -20,7 +20,7 @@ export function buildJoinerOnVennDiagramPartsWithCustomDetailingModifier<
     _right: Iterable<R>,
     vennDiagramParts: VennDiagramParts,
     merge: (tuple: TupleType) => MergedResult,
-    passesJoinCondition: (tuple: LRA<L, R>) => boolean,
+    passesJoinCondition: (tuple: VVA<L, R>) => boolean,
     // This trust flag matters really only in cases when
     // `flags & ShouldAdd.RightExclusivePart` gives truthy result, and when
     // trust cannot be automatically established
@@ -53,7 +53,7 @@ export function buildJoinerOnVennDiagramPartsWithCustomDetailingModifier<
       // Starts with -1 because is being incremented before used
 
       for (const r of right) {
-        const tuple = [l, r] satisfies LRA<L, R>;
+        const tuple = [l, r] satisfies VVA<L, R>;
         rIndex += 1;
 
         if (!passesJoinCondition(tuple)) continue;

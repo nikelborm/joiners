@@ -4,7 +4,7 @@ import type {
   AllJoinNames,
   LevelOfDetailModifier,
   JoinOnJoinName,
-  LRA,
+  VVA,
 } from './types.ts';
 
 export function buildJoinerOnJoinNameWithCustomDetailingModifier<
@@ -22,11 +22,13 @@ export function buildJoinerOnJoinNameWithCustomDetailingModifier<
     merge: (
       tuple: JoinOnJoinName<L, R, JoinName, LevelOfDetail>,
     ) => MergedResult,
-    passesJoinCondition?: (tuple: LRA<L, R>) => boolean,
+    passesJoinCondition?: (tuple: VVA<L, R>) => boolean,
     trustElementsOrderConsistencyOfRightIterable?: boolean,
   ): Generator<MergedResult> {
     if ((joinName === 'crossJoin') !== (passesJoinCondition === undefined))
-      throw new Error();
+      throw new Error(
+        'You either choose only crossJoin, or specify only join condition. Not both.',
+      );
 
     return joinOnVennDiagramParts(
       left,
@@ -35,7 +37,7 @@ export function buildJoinerOnJoinNameWithCustomDetailingModifier<
       merge,
       joinName === 'crossJoin'
         ? () => true
-        : (passesJoinCondition as (tuple: LRA<L, R>) => boolean),
+        : (passesJoinCondition as (tuple: VVA<L, R>) => boolean),
       trustElementsOrderConsistencyOfRightIterable,
     );
   }
@@ -70,7 +72,7 @@ export type NonCrossJoinerWithCustomDetailingModifier<
   right: Iterable<R>,
   joinName: JoinName,
   merge: (tuple: JoinOnJoinName<L, R, JoinName, Detailing>) => MergedResult,
-  passesJoinCondition: (tuple: LRA<L, R>) => boolean,
+  passesJoinCondition: (tuple: VVA<L, R>) => boolean,
   trustElementsOrderConsistencyOfRightIterable?: boolean,
 ) => Generator<MergedResult>;
 

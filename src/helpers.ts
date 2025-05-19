@@ -1,6 +1,6 @@
 import { _ } from './constants.ts';
 
-import type { BBA, LNC, ToBBA, ToV, To_ } from './types.ts';
+import type { BBA, VNC, ToBBA, ToV, To_ } from './types.ts';
 
 export function isEmpty<T>(v: T): v is To_<T> {
   return v === _;
@@ -23,6 +23,6 @@ export function castToBBA<tup extends [unknown, unknown]>(
     );
 }
 
-let asdf = [12, _] as LNC<12, string>;
+let asdf = [12, _] as VNC<12, string>;
 
 castToBBA([123, 123]);

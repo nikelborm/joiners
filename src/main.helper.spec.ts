@@ -1,6 +1,6 @@
 import { noCase } from 'change-case';
 import { capitalize, objectEntries, objectKeys } from 'tsafe';
-import { describe } from 'vitest';
+import { describe, expect, it, test } from 'vitest';
 import {
   _,
   joinNameToVennDiagramParts,
@@ -11,7 +11,7 @@ import { join } from './joinOnJoinName.ts';
 import type {
   AllJoinNames,
   BBA,
-  LRA,
+  VVA,
   Prettify,
   VennDiagramPartsCombinations,
 } from './types.ts';
@@ -36,17 +36,17 @@ function getJoinNamesBy<Mask>(
 
 /**
  * For cases when to filled with data base of A we join empty B, here we collect
- * types of joins that return exclusively LNAs for every row of A ([A, empty])
+ * types of joins that return exclusively VNAs for every row of A ([A, empty])
  * and no other rows
  */
-const joinsProducingLNAs = getJoinNamesBy<`1${string}`>(e => e.startsWith('1'));
+const joinsProducingVNAs = getJoinNamesBy<`1${string}`>(e => e.startsWith('1'));
 
 /**
  * For cases when to empty base of A we join filled with data B, here we collect
- * types of joins that return exclusively NRAs for every row of B ([empty, B])
+ * types of joins that return exclusively NVAs for every row of B ([empty, B])
  * and no other rows
  */
-const joinsProducingNRAs = getJoinNamesBy<`${string}1`>(e => e.endsWith('1'));
+const joinsProducingNVAs = getJoinNamesBy<`${string}1`>(e => e.endsWith('1'));
 
 /**
  * Allows arrays of values pass equality tests regardless of order of elements,
@@ -56,9 +56,20 @@ const joinsProducingNRAs = getJoinNamesBy<`${string}1`>(e => e.endsWith('1'));
 const toUnorderedSet = <T>(iterable: Iterable<T>) =>
   new Set(Array.from(iterable, v => [v] as [T]));
 
+type Side = { status: string };
+const renderSuiteName = (a: Side, b: Side, joinName: string) =>
+  [
+    /* 'Empty ' */ capitalize(a.status).padEnd(6),
+    'Array<A>',
+    /* 'left joined    ' */ noCase(joinName + 'ed').padStart(17),
+    'with',
+    /* 'filled' */ b.status.padEnd(6),
+    'Array<B>',
+  ].join(' ');
+
 export const testSuiteForAllJoins = <L, R, MergeResult>(
   suiteName: string,
-  passesJoinCondition: (tuple: LRA<L, R>) => boolean,
+  passesJoinCondition: (tuple: VVA<L, R>) => boolean,
   merge: (tuple: BBA<L, R>) => MergeResult,
   {
     a: aNotShuffled,
@@ -74,72 +85,50 @@ export const testSuiteForAllJoins = <L, R, MergeResult>(
 ) => {
   const a = getShufflingIterable(aNotShuffled);
   const b = getShufflingIterable(bNotShuffled);
+  const render = <const S, V>(status: S, value: V) => ({ status, value });
 
-  describe(suiteName, test => {
-    for (const joinName of objectKeys(joinResultForBothFilledDatasets)) {
-      const expectations = [
-        {
-          a: { status: 'empty', value: [] },
-          b: { status: 'empty', value: [] },
-          expectedResult: [],
-        },
-        {
-          a: { status: 'empty', value: [] },
-          b: { status: 'filled', value: b },
-          expectedResult: Array.from(
-            joinsProducingNRAs.has(joinName) ? b : [],
-            e => merge([_, e]),
-          ),
-        },
-        {
-          a: { status: 'filled', value: a },
-          b: { status: 'empty', value: [] },
-          expectedResult: Array.from(
-            joinsProducingLNAs.has(joinName) ? a : [],
-            e => merge([e, _]),
-          ),
-        },
-        {
-          a: { status: 'filled', value: a },
-          b: { status: 'filled', value: b },
-          expectedResult: joinResultForBothFilledDatasets[joinName],
-        },
-      ] as const;
+  const split = <T>(i: number, divisor: number, value: Iterable<T>) =>
+    i & divisor ? render('empty', []) : render('filled', value);
 
-      for (const { a, b, expectedResult } of expectations)
-        test(
-          [
-            /* 'Empty ' */ capitalize(a.status).padEnd(6),
-            'Array<A>',
-            /* 'left joined    ' */ noCase(joinName + 'ed').padStart(17),
-            'with',
-            /* 'filled' */ b.status.padEnd(6),
-            'Array<B>',
-          ].join(' '),
-          ctx => {
-            const getJoinResult = () =>
-              join(
-                a.value,
-                b.value,
-                // @ts-expect-error it's expected of ts reporting an error related to joinName being too wide
-                joinName,
-                merge,
-                joinName === 'crossJoin' ? void 0 : passesJoinCondition,
-              );
+  describe.for(
+    objectKeys(joinResultForBothFilledDatasets).flatMap(joinName =>
+      [
+        joinResultForBothFilledDatasets[joinName],
+        Array.from(joinsProducingVNAs.has(joinName) ? a : [], e =>
+          merge([e, _]),
+        ),
+        Array.from(joinsProducingNVAs.has(joinName) ? b : [], e =>
+          merge([_, e]),
+        ),
+        [],
+      ].map((expectedResult, i) => ({
+        joinName,
+        a: split(i, 2, a),
+        b: split(i, 1, b),
+        expectedResult,
+      })),
+    ),
+  )(suiteName, ({ joinName, a, b, expectedResult }) => {
+    const localJoin = (joinConditionFn?: (...args: any[]) => unknown) =>
+      // @ts-expect-error it's expected of ts reporting an error related to joinName being too wide
+      join(a.value, b.value, joinName, merge, joinConditionFn);
 
-            const initialResult = toUnorderedSet(getJoinResult());
+    describe(renderSuiteName(a, b, joinName), () => {
+      it('Throws    ', () =>
+        expect(() =>
+          localJoin(joinName === 'crossJoin' ? passesJoinCondition : void 0),
+        ).toThrow());
 
-            // tests if result is correct
-            ctx
-              .expect(initialResult)
-              .toStrictEqual(toUnorderedSet(expectedResult));
+      const getJoinResult = () =>
+        localJoin(joinName === 'crossJoin' ? void 0 : passesJoinCondition);
 
-            // tests if function execution is pure and has no side-effects
-            ctx
-              .expect(toUnorderedSet(getJoinResult()))
-              .toStrictEqual(initialResult);
-          },
-        );
-    }
+      const initialResult = toUnorderedSet(getJoinResult());
+
+      test('Correct   ', () =>
+        expect(initialResult).toStrictEqual(toUnorderedSet(expectedResult)));
+
+      test('Consistent', () =>
+        expect(toUnorderedSet(getJoinResult())).toStrictEqual(initialResult));
+    });
   });
 };

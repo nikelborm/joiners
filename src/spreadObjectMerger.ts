@@ -3,7 +3,7 @@
 
 // import type {Merge as MagicGeneric} from 'type-fest';
 import type { At as GetNthCharacter } from 'ts-toolbelt/out/String/At.d.ts';
-import type { BBA, ForbiddenLiteralUnion, LNA, NRA } from './types.ts';
+import type { BBA, ForbiddenLiteralUnion, VNA, NVA } from './types.ts';
 import type { PreserveUndefinedOnlyIfWasExplicit } from './PreserveUndefinedOnlyIfWasExplicit.ts';
 
 function doesAHavePriority(
@@ -33,9 +33,9 @@ export const getSpreadObjectMerger = <
     ...castToObject(+AHasPriority  as TupleIndex),
     ...castToObject(+!AHasPriority as TupleIndex)
   } as (
-    T extends NRA<never, infer B>
+    T extends NVA<never, infer B>
     ? B
-    : T extends LNA<infer A, never>
+    : T extends VNA<infer A, never>
     ? A
     : T extends BBA<infer A, infer B> // TODO: check this `extends` because it's SUS AF
     ? (

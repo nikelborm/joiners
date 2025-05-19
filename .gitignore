@@ -12,3 +12,4 @@ docker
 _
 joiner-*
 /gh-page/coverage
+src/types-copy.ts
