@@ -1,8 +1,13 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Update copyright year(s) in license file
 
 on:
   schedule:
     - cron: '0 3 1 1 *'
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   run:

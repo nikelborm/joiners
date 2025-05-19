@@ -1,7 +1,7 @@
 import { test } from 'vitest';
 import { join } from './joinOnJoinName.ts';
 import { joinOnVennDiagramParts } from './joinOnVennDiagramParts.ts';
-import {} from './namedJoinFunctions.ts';
+import { getSpreadObjectMerger } from './spreadObjectMerger.ts';
 
 const brandA = Symbol('A');
 const brandB = Symbol('B');
@@ -47,25 +47,38 @@ const right = new Set<B1>([
 ]);
 
 test("whole thing doesn't crash", () => {
-  for (const iterator of join(
-    left,
-    right,
-    'crossJoin',
-    // (tuple) => ({...(tuple[0] as object), ...(tuple[0] as object)}) as ((typeof tuple)[0] & (typeof tuple)[0]),
-    asIsMerger,
-    // getSpreadObjectMerger('{ ...A, ...B }'),
-    // (tuple) => tuple[0].v === tuple[1].v
-  )) {
+  for (const currentMergedTuple of join(left, right, 'crossJoin', asIsMerger)) {
+    console.log(currentMergedTuple);
+    //          ^? [A1, B1]
   }
 
-  for (const iterator of joinOnVennDiagramParts(
+  for (const currentMergedTuple of joinOnVennDiagramParts(
     left,
     right,
-    '110',
-    // (tuple) => ({...(tuple[0] as object), ...(tuple[0] as object)}) as ((typeof tuple)[0] & (typeof tuple)[0]),
-    asIsMerger,
-    // getSpreadObjectMerger('{ ...A, ...B }'),
+    '111',
+    getSpreadObjectMerger('{ ...A, ...B }'),
     tuple => tuple[0].v === tuple[1].v,
   )) {
+    console.log(currentMergedTuple);
+    // A1 | {
+    //   brand: typeof brandB;
+    //   id: number;
+    //   v: number;
+    //   optionalColumnSpecificToTypeB?: typeof brandB;
+    //   requiredColumnSpecificToTypeB: typeof brandB;
+    //   optionalColumnTypeAgnostic?: typeof brandB;
+    //   requiredColumnTypeAgnostic: typeof brandB;
+    // } | {
+    //   brand: typeof brandB;
+    //   id: number;
+    //   v: number;
+    //   requiredColumnTypeAgnostic: typeof brandB;
+    //   TODO: investigate why the fuck are you required here
+    //   optionalColumnTypeAgnostic: typeof brandA | typeof brandB | undefined;
+    //   optionalColumnSpecificToTypeA?: typeof brandA;
+    //   requiredColumnSpecificToTypeA: typeof brandA;
+    //   optionalColumnSpecificToTypeB?: typeof brandB;
+    //   requiredColumnSpecificToTypeB: typeof brandB;
+    // }
   }
 });

@@ -1,29 +1,65 @@
 {
-  "name": "@nikelborm/joiner",
+  "name": "@nikelborm/joiners",
   "version": "0.1.0",
-  "license": "MIT",
-  "description": "Join 2 or more iterables as if it's SQL joins but with the level of type-safety you didn't know you need",
   "type": "module",
+  "description": "Join 2 or more iterables as if it's SQL joins but with the level of type-safety you didn't know you need",
+  "license": "MIT",
   "scripts": {
-    "scratchpad": "node ./scratchpad.ts",
+    "scratchpad": "node --use-strict ./scratchpad.ts",
     "test": "vitest --typecheck --watch",
     "format": "prettier . --write",
     "coverage": "vitest run --coverage",
     "test-once": "vitest --run",
-    "test-jsr": "tsc && jsr publish --dry-run",
+    "test-jsr": "tspc && jsr publish --dry-run",
     "build": "./scripts/build.sh",
     "doc": "./scripts/generate_docs.sh",
     "docs": "./scripts/generate_docs.sh",
-    "watch-docs": "find src/ | entr -can ./scripts/generate_docs.sh"
+    "watch-docs": "find src/ ./scripts/generate_docs.sh | entr -can ./scripts/generate_docs.sh"
   },
-  "homepage": "https://github.com/nikelborm/joiner#readme",
-  "main": "./dist/src/index.js",
-  "module": "./dist/src/index.js",
-  "types": "./dist/dts/src/index.d.ts",
+  "dependencies": {
+    "outdent": "^0.8.0",
+    "tsafe": "^1.8.5",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "@total-typescript/ts-reset": "^0.6.1",
+    "@types/node": "^22.15.3",
+    "@vitest/coverage-v8": "^3.1.2",
+    "change-case": "^5.4.4",
+    "jsr": "^0.13.4",
+    "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
+    "ts-toolbelt": "^9.6.0",
+    "tstyche": "^3.5.0",
+    "type-fest": "^4.40.1",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  },
   "publishConfig": {
     "access": "public",
     "provenance": true
   },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/nikelborm/joiners.git"
+  },
+  "main": "./dist/src/index.js",
+  "module": "./dist/src/index.js",
+  "types": "./dist/dts/src/index.d.ts",
+  "bugs": {
+    "url": "https://github.com/nikelborm/joiners/issues",
+    "email": "evadev@duck.com"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!dist/minified",
+    "!**/*.tsbuildinfo",
+    "!**/*.spec.*",
+    "!**/scratchpad.*",
+    ".github/FUNDING.yml"
+  ],
+  "homepage": "https://github.com/nikelborm/joiners#readme",
   "exports": {
     ".": {
       "types": "./dist/dts/src/index.d.ts",
@@ -41,7 +77,8 @@
   },
   "keywords": [
     "joiner",
-    "join",
+    "joiners",
+    "joins",
     "sql",
     "typescript",
     "sql-like join",
@@ -71,23 +108,6 @@
     "cartesian",
     "cartesian-product"
   ],
-  "files": [
-    "dist",
-    "src",
-    "!dist/minified",
-    "!**/*.tsbuildinfo",
-    "!**/*.spec.*",
-    "!**/scratchpad.*",
-    ".github/FUNDING.yml"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/nikelborm/joiner.git"
-  },
-  "bugs": {
-    "url": "https://github.com/nikelborm/joiner/issues",
-    "email": "evadev@duck.com"
-  },
   "author": {
     "name": "nikelborm",
     "email": "evadev@duck.com",
@@ -106,24 +126,5 @@
       "email": "evadev@duck.com",
       "url": "https://github.com/nikelborm"
     }
-  ],
-  "dependencies": {
-    "outdent": "^0.8.0",
-    "tsafe": "^1.8.5",
-    "tslib": "^2.8.1"
-  },
-  "devDependencies": {
-    "@total-typescript/ts-reset": "^0.6.1",
-    "@types/node": "^22.15.3",
-    "@vitest/coverage-v8": "^3.1.2",
-    "change-case": "^5.4.4",
-    "jsr": "^0.13.4",
-    "prettier": "^3.5.3",
-    "rimraf": "^6.0.1",
-    "ts-toolbelt": "^9.6.0",
-    "tstyche": "^3.5.0",
-    "type-fest": "^4.40.1",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.2"
-  }
+  ]
 }

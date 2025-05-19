@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Release
 on:
   workflow_dispatch:
@@ -33,14 +34,32 @@ jobs:
       - name: 'Check if code passes tests'
         run: npm run test-once
 
+      - name: 'Extract package info from package.json'
+        id: package_info
+        run: |
+          set -euo pipefail
+          version=$(jq -r '.version' package.json)
+          name=$(jq -r '.name' package.json)
+          expected_package_archive_name=$name.tgz
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "name=$name" >> $GITHUB_OUTPUT
+          echo "expected_package_archive_name=$expected_package_archive_name" >> $GITHUB_OUTPUT
+          echo "url_of_released_minified_script=https://github.com/nikelborm/$name/releases/download/$version/$name.js" >> $GITHUB_OUTPUT
+
+      - name: 'Create package archive'
+        run: |
+          set -euo pipefail
+          mv ./$(npm pack) ./${{ steps.package_info.outputs.expected_package_archive_name }}
+
       - name: 'Publish to default NPM registry'
-        run: npm publish
+        run: npm publish ./${{ steps.package_info.outputs.expected_package_archive_name }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
       - name: 'Prepare deno.json for publishing to JSR'
         run: |
-          jq -s '.[1] + {version: .[0].version}' package.json deno.json > _ && mv _ deno.json
+          set -euo pipefail
+          jq '.version = "${{ steps.package_info.outputs.version }}"' deno.json > _ && mv _ deno.json
           npx prettier deno.json --write
 
       - name: 'Commit updated deno.json after npm install'
@@ -54,12 +73,27 @@ jobs:
         run: npx jsr publish
 
       - name: "Prepare package.json for publishing to GitHub's NPM registry"
-        run: |
-          jq '. + {name: ("@nikelborm/" + .name)}' package.json > _ && mv _ package.json
+        run: jq '.name = "@nikelborm/" + .name' package.json > _ && mv _ package.json
 
       - name: "Publish to GitHub's NPM registry"
         run: |
+          set -euo pipefail
           sed -i 's/registry.npmjs.org/npm.pkg.github.com/' /home/runner/work/_temp/.npmrc
           npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Upload NPM package archive as release artifacts'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.package_info.outputs.version }}
+          fail_on_unmatched_files: true
+          files: |
+            ${{ steps.package_info.outputs.expected_package_archive_name }}
+          body: |
+            # <img src="https://nikelborm.github.io/${{ steps.package_info.outputs.name }}/logo.png" align="right" width="40px" height="40px"/> New release of ${{ steps.package_info.outputs.name }}! Yay! 🎉
+
+            ## Files in this release
+
+            - `${{ steps.package_info.outputs.expected_package_archive_name }}` contains package archive which was published to NPM
+
